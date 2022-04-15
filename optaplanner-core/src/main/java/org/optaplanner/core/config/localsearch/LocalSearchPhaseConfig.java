@@ -41,6 +41,7 @@ import org.optaplanner.core.config.util.ConfigUtils;
 
 @XmlType(propOrder = {
         "localSearchType",
+        "phaseType",
         "moveSelectorConfig",
         "acceptorConfig",
         "foragerConfig"
@@ -53,6 +54,7 @@ public class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseConfig> 
     // and also because the input config file should match the output config file
 
     protected LocalSearchType localSearchType = null;
+    protected String phaseType = null;
 
     @XmlElements({
             @XmlElement(name = CartesianProductMoveSelectorConfig.XML_ELEMENT_NAME,
@@ -90,6 +92,14 @@ public class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseConfig> 
         this.localSearchType = localSearchType;
     }
 
+    public String getPhaseType() {
+        return this.phaseType;
+    }
+
+    public void setPhaseType(String phaseType) {
+        this.phaseType = phaseType;
+    }
+
     public MoveSelectorConfig getMoveSelectorConfig() {
         return moveSelectorConfig;
     }
@@ -123,6 +133,11 @@ public class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseConfig> 
         return this;
     }
 
+    public LocalSearchPhaseConfig withPhaseType(String phaseType) {
+        this.phaseType = phaseType;
+        return this;
+    }
+
     public LocalSearchPhaseConfig withMoveSelectorConfig(MoveSelectorConfig moveSelectorConfig) {
         this.moveSelectorConfig = moveSelectorConfig;
         return this;
@@ -143,6 +158,7 @@ public class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseConfig> 
         super.inherit(inheritedConfig);
         localSearchType = ConfigUtils.inheritOverwritableProperty(localSearchType,
                 inheritedConfig.getLocalSearchType());
+        phaseType = ConfigUtils.inheritOverwritableProperty(phaseType, inheritedConfig.getPhaseType());
         setMoveSelectorConfig(ConfigUtils.inheritOverwritableProperty(
                 getMoveSelectorConfig(), inheritedConfig.getMoveSelectorConfig()));
         acceptorConfig = ConfigUtils.inheritConfig(acceptorConfig, inheritedConfig.getAcceptorConfig());

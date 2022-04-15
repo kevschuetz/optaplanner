@@ -18,23 +18,36 @@ package org.optaplanner.core.impl.localsearch.decider.forager;
 
 import java.util.Objects;
 
+import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
+import org.optaplanner.core.config.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingType;
 import org.optaplanner.core.config.localsearch.decider.forager.FinalistPodiumType;
+import org.optaplanner.core.config.localsearch.decider.forager.ForagerType;
 import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
 import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchPickEarlyType;
+import org.optaplanner.core.impl.localsearch.decider.forager.custom.PrivacyPreservingHillClimbingForager;
+import org.optaplanner.core.impl.localsearch.decider.forager.custom.PrivacyPreservingSimulatedAnnealingForager;
+import org.optaplanner.core.impl.localsearch.decider.forager.custom.PrivacyPreservingStepCountingHillClimbingForager;
+
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.NeighbourhoodEvaluator;
 
 public class LocalSearchForagerFactory<Solution_> {
 
-    public static <Solution_> LocalSearchForagerFactory<Solution_> create(LocalSearchForagerConfig foragerConfig) {
-        return new LocalSearchForagerFactory<>(foragerConfig);
+    public static <Solution_> LocalSearchForagerFactory<Solution_> create(LocalSearchForagerConfig foragerConfig,
+            NeighbourhoodEvaluator<Solution_> evaluator) {
+        return new LocalSearchForagerFactory<>(foragerConfig, evaluator);
     }
 
     private final LocalSearchForagerConfig foragerConfig;
+    private NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator;
 
-    public LocalSearchForagerFactory(LocalSearchForagerConfig foragerConfig) {
+    public LocalSearchForagerFactory(LocalSearchForagerConfig foragerConfig, NeighbourhoodEvaluator<Solution_> evaluator) {
         this.foragerConfig = foragerConfig;
+        this.neighbourhoodEvaluator = evaluator;
     }
 
     public LocalSearchForager<Solution_> buildForager() {
+        if (foragerConfig.getForagerType() != null)
+            return buildCustomForager();
         LocalSearchPickEarlyType pickEarlyType_ =
                 Objects.requireNonNullElse(foragerConfig.getPickEarlyType(), LocalSearchPickEarlyType.NEVER);
         int acceptedCountLimit_ = Objects.requireNonNullElse(foragerConfig.getAcceptedCountLimit(), Integer.MAX_VALUE);
@@ -44,5 +57,27 @@ public class LocalSearchForagerFactory<Solution_> {
         boolean breakTieRandomly_ = Objects.requireNonNullElse(foragerConfig.getBreakTieRandomly(), true);
         return new AcceptedLocalSearchForager<>(finalistPodiumType_.buildFinalistPodium(), pickEarlyType_,
                 acceptedCountLimit_, breakTieRandomly_);
+    }
+
+    private LocalSearchForager<Solution_> buildCustomForager() {
+        int acceptedCountLimit_ = Objects.requireNonNullElse(foragerConfig.getAcceptedCountLimit(), Integer.MAX_VALUE);
+        if (foragerConfig.getForagerType() == ForagerType.SLM_HILL_CLIMBING) {
+            return new PrivacyPreservingHillClimbingForager<>(acceptedCountLimit_, neighbourhoodEvaluator);
+        } else if (foragerConfig.getForagerType() == ForagerType.SLM_STEP_COUNTING_HILL_CLIMBING) {
+            return new PrivacyPreservingStepCountingHillClimbingForager<>(acceptedCountLimit_, 20,
+                    StepCountingHillClimbingType.STEP, neighbourhoodEvaluator);
+        } else if (foragerConfig.getForagerType() == ForagerType.SLM_SIMULATED_ANNEALING) {
+            return new PrivacyPreservingSimulatedAnnealingForager<>(acceptedCountLimit_, HardSoftScore.of(0, 500),
+                    neighbourhoodEvaluator);
+        }
+        return null;
+    }
+
+    public NeighbourhoodEvaluator<Solution_> getNeighbourhoodEvaluator() {
+        return neighbourhoodEvaluator;
+    }
+
+    public void setNeighbourhoodEvaluator(NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator) {
+        this.neighbourhoodEvaluator = neighbourhoodEvaluator;
     }
 }

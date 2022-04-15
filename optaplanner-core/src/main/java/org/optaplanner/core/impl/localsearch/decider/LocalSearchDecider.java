@@ -47,6 +47,8 @@ public class LocalSearchDecider<Solution_> {
     protected boolean assertMoveScoreFromScratch = false;
     protected boolean assertExpectedUndoMoveScore = false;
 
+    protected boolean privacyPreserving = false;
+
     public LocalSearchDecider(String logIndentation, Termination<Solution_> termination,
             MoveSelector<Solution_> moveSelector, Acceptor<Solution_> acceptor, LocalSearchForager<Solution_> forager) {
         this.logIndentation = logIndentation;
@@ -78,6 +80,14 @@ public class LocalSearchDecider<Solution_> {
 
     public void setAssertExpectedUndoMoveScore(boolean assertExpectedUndoMoveScore) {
         this.assertExpectedUndoMoveScore = assertExpectedUndoMoveScore;
+    }
+
+    public boolean isPrivacyPreserving() {
+        return privacyPreserving;
+    }
+
+    public void setPrivacyPreserving(boolean privacyPreserving) {
+        this.privacyPreserving = privacyPreserving;
     }
 
     // ************************************************************************
@@ -129,20 +139,26 @@ public class LocalSearchDecider<Solution_> {
     }
 
     protected <Score_ extends Score<Score_>> void doMove(LocalSearchMoveScope<Solution_> moveScope) {
-        InnerScoreDirector<Solution_, Score_> scoreDirector = moveScope.getScoreDirector();
-        scoreDirector.doAndProcessMove(moveScope.getMove(), assertMoveScoreFromScratch, score -> {
-            moveScope.setScore(score);
+        if (!privacyPreserving) {
+            InnerScoreDirector<Solution_, Score_> scoreDirector = moveScope.getScoreDirector();
+            scoreDirector.doAndProcessMove(moveScope.getMove(), assertMoveScoreFromScratch, score -> {
+                moveScope.setScore(score);
+                boolean accepted = acceptor.isAccepted(moveScope);
+                moveScope.setAccepted(accepted);
+                forager.addMove(moveScope);
+            });
+            if (assertExpectedUndoMoveScore) {
+                scoreDirector.assertExpectedUndoMoveScore(moveScope.getMove(),
+                        (Score_) moveScope.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore());
+            }
+        } else {
             boolean accepted = acceptor.isAccepted(moveScope);
             moveScope.setAccepted(accepted);
             forager.addMove(moveScope);
-        });
-        if (assertExpectedUndoMoveScore) {
-            scoreDirector.assertExpectedUndoMoveScore(moveScope.getMove(),
-                    (Score_) moveScope.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore());
         }
-        logger.trace("{}        Move index ({}), score ({}), accepted ({}), move ({}).",
+        logger.trace("{}        Move index ({}), accepted ({}), move ({}).",
                 logIndentation,
-                moveScope.getMoveIndex(), moveScope.getScore(), moveScope.getAccepted(),
+                moveScope.getMoveIndex(), moveScope.getAccepted(),
                 moveScope.getMove());
     }
 

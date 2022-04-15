@@ -54,7 +54,9 @@ public class AcceptorFactory<Solution_> {
     }
 
     public Acceptor<Solution_> buildAcceptor(HeuristicConfigPolicy<Solution_> configPolicy) {
+        // TODO: add custom acceptor
         List<Acceptor<Solution_>> acceptorList = Stream.of(
+                buildSlotmachineHardConstraintsAcceptor(),
                 buildHillClimbingAcceptor(),
                 buildStepCountingHillClimbingAcceptor(),
                 buildEntityTabuAcceptor(configPolicy),
@@ -79,6 +81,15 @@ public class AcceptorFactory<Solution_> {
                             + "For a good starting values,"
                             + " see the docs section \"Which optimization algorithms should I use?\".");
         }
+    }
+
+    private Optional<SlotmachineHardConstraintsAcceptor<Solution_>> buildSlotmachineHardConstraintsAcceptor() {
+        if (acceptorConfig.getAcceptorTypeList() != null
+                && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.SLM_HARDCONSTRAINTS_ACCEPTOR)) {
+            SlotmachineHardConstraintsAcceptor<Solution_> acceptor = new SlotmachineHardConstraintsAcceptor<>();
+            return Optional.of(acceptor);
+        }
+        return Optional.empty();
     }
 
     private Optional<HillClimbingAcceptor<Solution_>> buildHillClimbingAcceptor() {

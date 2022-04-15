@@ -48,8 +48,12 @@ import org.optaplanner.core.impl.solver.recaller.BestSolutionRecaller;
 import org.optaplanner.core.impl.solver.termination.Termination;
 import org.optaplanner.core.impl.solver.thread.ChildThreadType;
 
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.NeighbourhoodEvaluator;
+
 public class DefaultLocalSearchPhaseFactory<Solution_>
         extends AbstractPhaseFactory<Solution_, LocalSearchPhaseConfig> {
+
+    private NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator;
 
     public DefaultLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig) {
         super(phaseConfig);
@@ -92,6 +96,7 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
         LocalSearchDecider<Solution_> decider;
         if (moveThreadCount == null) {
             decider = new LocalSearchDecider<>(configPolicy.getLogIndentation(), termination, moveSelector, acceptor, forager);
+            decider.setPrivacyPreserving("privacyPreserving".equals(phaseConfig.getPhaseType()));
         } else {
             Integer moveThreadBufferSize = configPolicy.getMoveThreadBufferSize();
             if (moveThreadBufferSize == null) {
@@ -126,11 +131,6 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
     protected Acceptor<Solution_> buildAcceptor(HeuristicConfigPolicy<Solution_> configPolicy) {
         LocalSearchAcceptorConfig acceptorConfig_;
         if (phaseConfig.getAcceptorConfig() != null) {
-            if (phaseConfig.getLocalSearchType() != null) {
-                throw new IllegalArgumentException("The localSearchType (" + phaseConfig.getLocalSearchType()
-                        + ") must not be configured if the acceptorConfig (" + phaseConfig.getAcceptorConfig()
-                        + ") is explicitly configured.");
-            }
             acceptorConfig_ = phaseConfig.getAcceptorConfig();
         } else {
             LocalSearchType localSearchType_ =
@@ -165,11 +165,6 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
     protected LocalSearchForager<Solution_> buildForager(HeuristicConfigPolicy<Solution_> configPolicy) {
         LocalSearchForagerConfig foragerConfig_;
         if (phaseConfig.getForagerConfig() != null) {
-            if (phaseConfig.getLocalSearchType() != null) {
-                throw new IllegalArgumentException("The localSearchType (" + phaseConfig.getLocalSearchType()
-                        + ") must not be configured if the foragerConfig (" + phaseConfig.getForagerConfig()
-                        + ") is explicitly configured.");
-            }
             foragerConfig_ = phaseConfig.getForagerConfig();
         } else {
             LocalSearchType localSearchType_ =
@@ -197,7 +192,7 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
                             + ") is not implemented.");
             }
         }
-        return LocalSearchForagerFactory.<Solution_> create(foragerConfig_).buildForager();
+        return LocalSearchForagerFactory.<Solution_> create(foragerConfig_, neighbourhoodEvaluator).buildForager();
     }
 
     protected MoveSelector<Solution_> buildMoveSelector(HeuristicConfigPolicy<Solution_> configPolicy) {
@@ -221,5 +216,9 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
                     .buildMoveSelector(configPolicy, defaultCacheType, defaultSelectionOrder);
         }
         return moveSelector;
+    }
+
+    public void setNeighbourhoodEvaluator(NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator) {
+        this.neighbourhoodEvaluator = neighbourhoodEvaluator;
     }
 }

@@ -38,6 +38,7 @@ import org.optaplanner.core.config.solver.termination.TerminationConfig;
 import org.optaplanner.core.config.util.ConfigUtils;
 import org.optaplanner.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import org.optaplanner.core.impl.heuristic.HeuristicConfigPolicy;
+import org.optaplanner.core.impl.localsearch.DefaultLocalSearchPhaseFactory;
 import org.optaplanner.core.impl.phase.Phase;
 import org.optaplanner.core.impl.phase.PhaseFactory;
 import org.optaplanner.core.impl.score.director.InnerScoreDirectorFactory;
@@ -53,6 +54,7 @@ import org.optaplanner.core.impl.solver.termination.TerminationFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.NeighbourhoodEvaluator;
 import io.micrometer.core.instrument.Tags;
 
 /**
@@ -66,11 +68,17 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
 
     private final SolverConfig solverConfig;
 
+    private NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator;
+
     public DefaultSolverFactory(SolverConfig solverConfig) {
         if (solverConfig == null) {
             throw new IllegalStateException("The solverConfig (" + solverConfig + ") cannot be null.");
         }
         this.solverConfig = solverConfig;
+    }
+
+    public void setNeighbourhoodEvaluator(NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator) {
+        this.neighbourhoodEvaluator = neighbourhoodEvaluator;
     }
 
     public InnerScoreDirectorFactory<Solution_, ?> getScoreDirectorFactory() {
@@ -199,6 +207,9 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
         int phaseIndex = 0;
         for (PhaseConfig phaseConfig : phaseConfigList_) {
             PhaseFactory<Solution_> phaseFactory = PhaseFactory.create(phaseConfig);
+            if (phaseFactory instanceof DefaultLocalSearchPhaseFactory) {
+                ((DefaultLocalSearchPhaseFactory<Solution_>) phaseFactory).setNeighbourhoodEvaluator(neighbourhoodEvaluator);
+            }
             Phase<Solution_> phase =
                     phaseFactory.buildPhase(phaseIndex, configPolicy, bestSolutionRecaller, termination);
             phaseList.add(phase);

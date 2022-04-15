@@ -10,7 +10,7 @@
     <relativePath>../build/optaplanner-build-parent/pom.xml</relativePath>
   </parent>
 
-  <artifactId>optaplanner-core</artifactId>
+  <artifactId>dke-optaplanner-core</artifactId>
 
   <name>OptaPlanner core</name>
   <description>
@@ -162,6 +162,14 @@
           </sources>
         </configuration>
       </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>16</source>
+                <target>16</target>
+            </configuration>
+        </plugin>
     </plugins>
   </build>
 </project>
