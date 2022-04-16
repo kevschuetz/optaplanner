@@ -1,4 +1,4 @@
-package at.jku.dke.slotmachine.optimizer.optimization.optaplanner;
+package org.optaplanner.core.impl.localsearch.decider.forager.custom;
 
 import java.util.List;
 import java.util.Map;

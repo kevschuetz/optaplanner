@@ -25,6 +25,7 @@ import javax.xml.bind.annotation.XmlType;
 import org.optaplanner.core.config.AbstractConfig;
 import org.optaplanner.core.config.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingType;
 import org.optaplanner.core.config.util.ConfigUtils;
+import org.optaplanner.core.impl.localsearch.AssignmentProblemType;
 
 @XmlType(propOrder = {
         "acceptorTypeList",
@@ -45,13 +46,16 @@ import org.optaplanner.core.config.util.ConfigUtils;
         "greatDelugeWaterLevelIncrementScore",
         "greatDelugeWaterLevelIncrementRatio",
         "stepCountingHillClimbingSize",
-        "stepCountingHillClimbingType"
+        "stepCountingHillClimbingType",
+        "constraintValidatorClass",
+        "assignmentProblemType"
 })
 public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAcceptorConfig> {
 
     @XmlElement(name = "acceptorType")
     private List<AcceptorType> acceptorTypeList = null;
 
+    protected AssignmentProblemType assignmentProblemType;
     protected Integer entityTabuSize = null;
     protected Double entityTabuRatio = null;
     protected Integer fadingEntityTabuSize = null;
@@ -75,8 +79,26 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
     protected Integer stepCountingHillClimbingSize = null;
     protected StepCountingHillClimbingType stepCountingHillClimbingType = null;
 
+    protected String constraintValidatorClass;
+
+    public AssignmentProblemType getAssignmentProblemType() {
+        return assignmentProblemType;
+    }
+
+    public void setAssignmentProblemType(AssignmentProblemType assignmentProblemType) {
+        this.assignmentProblemType = assignmentProblemType;
+    }
+
     public List<AcceptorType> getAcceptorTypeList() {
         return acceptorTypeList;
+    }
+
+    public String getConstraintValidatorClass() {
+        return constraintValidatorClass;
+    }
+
+    public void setConstraintValidatorClass(String constraintValidatorClass) {
+        this.constraintValidatorClass = constraintValidatorClass;
     }
 
     public void setAcceptorTypeList(List<AcceptorType> acceptorTypeList) {
@@ -236,6 +258,11 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
         return this;
     }
 
+    public LocalSearchAcceptorConfig withConstraintValidatorClass(String constraintValidatorClass) {
+        this.constraintValidatorClass = constraintValidatorClass;
+        return this;
+    }
+
     public LocalSearchAcceptorConfig withEntityTabuSize(Integer entityTabuSize) {
         this.entityTabuSize = entityTabuSize;
         return this;
@@ -331,6 +358,8 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
                 }
             }
         }
+        constraintValidatorClass = ConfigUtils.inheritOverwritableProperty(constraintValidatorClass,
+                inheritedConfig.getConstraintValidatorClass());
         entityTabuSize = ConfigUtils.inheritOverwritableProperty(entityTabuSize, inheritedConfig.getEntityTabuSize());
         entityTabuRatio = ConfigUtils.inheritOverwritableProperty(entityTabuRatio, inheritedConfig.getEntityTabuRatio());
         fadingEntityTabuSize = ConfigUtils.inheritOverwritableProperty(fadingEntityTabuSize,

@@ -48,12 +48,14 @@ import org.optaplanner.core.impl.solver.recaller.BestSolutionRecaller;
 import org.optaplanner.core.impl.solver.termination.Termination;
 import org.optaplanner.core.impl.solver.thread.ChildThreadType;
 
-import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.NeighbourhoodEvaluator;
-
 public class DefaultLocalSearchPhaseFactory<Solution_>
         extends AbstractPhaseFactory<Solution_, LocalSearchPhaseConfig> {
 
-    private NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator;
+    public AssignmentProblemType assignmentProblemType;
+
+    public void setAssignmentProblemType(AssignmentProblemType assignmentProblemType) {
+        this.assignmentProblemType = assignmentProblemType;
+    }
 
     public DefaultLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig) {
         super(phaseConfig);
@@ -158,6 +160,7 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
                             + ") is not implemented.");
             }
         }
+        acceptorConfig_.setAssignmentProblemType(assignmentProblemType);
         return AcceptorFactory.<Solution_> create(acceptorConfig_)
                 .buildAcceptor(configPolicy);
     }
@@ -192,7 +195,7 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
                             + ") is not implemented.");
             }
         }
-        return LocalSearchForagerFactory.<Solution_> create(foragerConfig_, neighbourhoodEvaluator).buildForager();
+        return LocalSearchForagerFactory.<Solution_> create(foragerConfig_).buildForager();
     }
 
     protected MoveSelector<Solution_> buildMoveSelector(HeuristicConfigPolicy<Solution_> configPolicy) {
@@ -218,7 +221,4 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
         return moveSelector;
     }
 
-    public void setNeighbourhoodEvaluator(NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator) {
-        this.neighbourhoodEvaluator = neighbourhoodEvaluator;
-    }
 }

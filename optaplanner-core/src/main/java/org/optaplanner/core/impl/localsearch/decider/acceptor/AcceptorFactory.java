@@ -16,6 +16,7 @@
 
 package org.optaplanner.core.impl.localsearch.decider.acceptor;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,6 +27,7 @@ import org.optaplanner.core.config.localsearch.decider.acceptor.AcceptorType;
 import org.optaplanner.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig;
 import org.optaplanner.core.config.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingType;
 import org.optaplanner.core.impl.heuristic.HeuristicConfigPolicy;
+import org.optaplanner.core.impl.localsearch.AssignmentProblemType;
 import org.optaplanner.core.impl.localsearch.decider.acceptor.greatdeluge.GreatDelugeAcceptor;
 import org.optaplanner.core.impl.localsearch.decider.acceptor.hillclimbing.HillClimbingAcceptor;
 import org.optaplanner.core.impl.localsearch.decider.acceptor.lateacceptance.LateAcceptanceAcceptor;
@@ -39,9 +41,11 @@ import org.optaplanner.core.impl.localsearch.decider.acceptor.tabu.size.FixedTab
 import org.optaplanner.core.impl.localsearch.decider.acceptor.tabu.size.ValueRatioTabuSizeStrategy;
 
 public class AcceptorFactory<Solution_> {
+    private ConstraintValidator<Solution_> constraintValidator;
 
     // Based on Tomas Muller's work. TODO Confirm with benchmark across our examples/datasets
     private static final double DEFAULT_WATER_LEVEL_INCREMENT_RATIO = 0.00_000_005;
+    private AssignmentProblemType assignmentProblemType;
 
     public static <Solution_> AcceptorFactory<Solution_> create(LocalSearchAcceptorConfig acceptorConfig) {
         return new AcceptorFactory<>(acceptorConfig);
@@ -86,7 +90,15 @@ public class AcceptorFactory<Solution_> {
     private Optional<SlotmachineHardConstraintsAcceptor<Solution_>> buildSlotmachineHardConstraintsAcceptor() {
         if (acceptorConfig.getAcceptorTypeList() != null
                 && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.SLM_HARDCONSTRAINTS_ACCEPTOR)) {
-            SlotmachineHardConstraintsAcceptor<Solution_> acceptor = new SlotmachineHardConstraintsAcceptor<>();
+            try {
+                constraintValidator = (ConstraintValidator<Solution_>) Class
+                        .forName(acceptorConfig.getConstraintValidatorClass()).getDeclaredConstructor().newInstance();
+            } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException
+                    | InstantiationException e) {
+                e.printStackTrace();
+            }
+            SlotmachineHardConstraintsAcceptor<Solution_> acceptor =
+                    new SlotmachineHardConstraintsAcceptor<>(constraintValidator, acceptorConfig.getAssignmentProblemType());
             return Optional.of(acceptor);
         }
         return Optional.empty();

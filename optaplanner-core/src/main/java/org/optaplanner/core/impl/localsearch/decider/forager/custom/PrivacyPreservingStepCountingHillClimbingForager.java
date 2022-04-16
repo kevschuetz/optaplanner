@@ -7,8 +7,6 @@ import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 
-import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.NeighbourhoodEvaluator;
-
 public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
     protected int stepCountingHillClimbingSize = 5;
 

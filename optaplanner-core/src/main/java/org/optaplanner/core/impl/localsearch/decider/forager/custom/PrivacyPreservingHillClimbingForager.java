@@ -3,8 +3,6 @@ package org.optaplanner.core.impl.localsearch.decider.forager.custom;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 
-import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.NeighbourhoodEvaluator;
-
 public class PrivacyPreservingHillClimbingForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
 
     public PrivacyPreservingHillClimbingForager(int acceptedCountLimit_, NeighbourhoodEvaluator<Solution_> evaluator) {

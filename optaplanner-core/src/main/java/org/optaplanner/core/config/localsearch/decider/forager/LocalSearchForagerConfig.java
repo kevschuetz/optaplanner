@@ -28,6 +28,7 @@ import org.optaplanner.core.config.util.ConfigUtils;
         "pickEarlyType",
         "acceptedCountLimit",
         "foragerType",
+        "neighbourhoodEvaluatorClass",
         "finalistPodiumType",
         "breakTieRandomly"
 })
@@ -41,8 +42,18 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
     @XmlElement(name = "foragerType")
     private ForagerType foragerType = null;
 
+    public String neighbourhoodEvaluatorClass;
+
     public ForagerType getForagerType() {
         return foragerType;
+    }
+
+    public String getNeighbourhoodEvaluatorClass() {
+        return neighbourhoodEvaluatorClass;
+    }
+
+    public void setNeighbourhoodEvaluatorClass(String neighbourhoodEvaluatorClass) {
+        this.neighbourhoodEvaluatorClass = neighbourhoodEvaluatorClass;
     }
 
     public void setForagerType(ForagerType foragerType) {
@@ -95,6 +106,12 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
         return this;
     }
 
+    public LocalSearchForagerConfig
+            withNeighbourhoodEvaluatorClass(String neighbourhoodEvaluatorClass) {
+        this.neighbourhoodEvaluatorClass = neighbourhoodEvaluatorClass;
+        return this;
+    }
+
     public LocalSearchForagerConfig withAcceptedCountLimit(int acceptedCountLimit) {
         this.acceptedCountLimit = acceptedCountLimit;
         return this;
@@ -114,6 +131,8 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
     public LocalSearchForagerConfig inherit(LocalSearchForagerConfig inheritedConfig) {
         foragerType = ConfigUtils.inheritOverwritableProperty(foragerType,
                 inheritedConfig.getForagerType());
+        neighbourhoodEvaluatorClass = ConfigUtils.inheritOverwritableProperty(neighbourhoodEvaluatorClass,
+                inheritedConfig.getNeighbourhoodEvaluatorClass());
         pickEarlyType = ConfigUtils.inheritOverwritableProperty(pickEarlyType,
                 inheritedConfig.getPickEarlyType());
         acceptedCountLimit = ConfigUtils.inheritOverwritableProperty(acceptedCountLimit,

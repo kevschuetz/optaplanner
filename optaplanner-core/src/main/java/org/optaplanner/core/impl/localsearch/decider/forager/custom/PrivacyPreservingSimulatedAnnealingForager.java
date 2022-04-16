@@ -7,8 +7,6 @@ import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 import org.optaplanner.core.impl.score.ScoreUtils;
 
-import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.NeighbourhoodEvaluator;
-
 public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
 
     protected Score startingTemperature;

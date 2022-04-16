@@ -10,8 +10,6 @@ import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 import org.optaplanner.core.impl.score.director.InnerScoreDirector;
 
-import at.jku.dke.slotmachine.optimizer.optimization.optaplanner.NeighbourhoodEvaluator;
-
 /**
  * A privacy preserving forager that uses the privacy-engine to evaluate the candidates of the search steps.
  * This class can be extended to implement different selection mechanisms, by implementing the pickMoveUsingPrivacyEngineMap()
