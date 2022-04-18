@@ -58,9 +58,8 @@ public class AcceptorFactory<Solution_> {
     }
 
     public Acceptor<Solution_> buildAcceptor(HeuristicConfigPolicy<Solution_> configPolicy) {
-        // TODO: add custom acceptor
         List<Acceptor<Solution_>> acceptorList = Stream.of(
-                buildSlotmachineHardConstraintsAcceptor(),
+                buildConstraintAwareAcceptor(),
                 buildHillClimbingAcceptor(),
                 buildStepCountingHillClimbingAcceptor(),
                 buildEntityTabuAcceptor(configPolicy),
@@ -87,18 +86,21 @@ public class AcceptorFactory<Solution_> {
         }
     }
 
-    private Optional<SlotmachineHardConstraintsAcceptor<Solution_>> buildSlotmachineHardConstraintsAcceptor() {
+    private Optional<ConstraintAwareAcceptor<Solution_>> buildConstraintAwareAcceptor() {
         if (acceptorConfig.getAcceptorTypeList() != null
-                && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.SLM_HARDCONSTRAINTS_ACCEPTOR)) {
+                && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.CONSTRAINT_AWARE)) {
             try {
                 constraintValidator = (ConstraintValidator<Solution_>) Class
                         .forName(acceptorConfig.getConstraintValidatorClass()).getDeclaredConstructor().newInstance();
             } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException
                     | InstantiationException e) {
-                e.printStackTrace();
+                throw new IllegalArgumentException(
+                        "Could not load ConstraintValidator-class although the acceptor type has been set to constraint aware."
+                                + e.getMessage());
             }
-            SlotmachineHardConstraintsAcceptor<Solution_> acceptor =
-                    new SlotmachineHardConstraintsAcceptor<>(constraintValidator, acceptorConfig.getAssignmentProblemType());
+            ConstraintAwareAcceptor<Solution_> acceptor =
+                    new ConstraintAwareAcceptor<>(constraintValidator, Objects
+                            .requireNonNullElse(acceptorConfig.getAssignmentProblemType(), AssignmentProblemType.UNBALANCED));
             return Optional.of(acceptor);
         }
         return Optional.empty();

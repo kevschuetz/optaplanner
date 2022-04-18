@@ -4,11 +4,11 @@ import org.optaplanner.core.impl.heuristic.selector.move.generic.SwapMove;
 import org.optaplanner.core.impl.localsearch.AssignmentProblemType;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 
-public class SlotmachineHardConstraintsAcceptor<Solution_> extends AbstractAcceptor<Solution_> {
+public class ConstraintAwareAcceptor<Solution_> extends AbstractAcceptor<Solution_> {
     private ConstraintValidator<Solution_> constraintValidator;
     private AssignmentProblemType assignmentProblemType = AssignmentProblemType.UNBALANCED;
 
-    public SlotmachineHardConstraintsAcceptor(ConstraintValidator<Solution_> constraintValidator,
+    public ConstraintAwareAcceptor(ConstraintValidator<Solution_> constraintValidator,
             AssignmentProblemType assignmentProblemType) {
         this.assignmentProblemType = assignmentProblemType;
         this.constraintValidator = constraintValidator;

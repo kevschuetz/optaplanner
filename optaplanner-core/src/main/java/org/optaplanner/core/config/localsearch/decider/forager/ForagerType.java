@@ -4,7 +4,7 @@ import javax.xml.bind.annotation.XmlEnum;
 
 @XmlEnum
 public enum ForagerType {
-    SLM_HILL_CLIMBING,
-    SLM_STEP_COUNTING_HILL_CLIMBING,
-    SLM_SIMULATED_ANNEALING
+    PP_HILL_CLIMBING,
+    PP_STEP_COUNTING_HILL_CLIMBING,
+    PP_SIMULATED_ANNEALING
 }

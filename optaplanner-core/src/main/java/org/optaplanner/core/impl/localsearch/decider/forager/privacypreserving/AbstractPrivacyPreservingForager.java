@@ -1,4 +1,4 @@
-package org.optaplanner.core.impl.localsearch.decider.forager.custom;
+package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
 import java.util.*;
 

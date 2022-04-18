@@ -1,4 +1,4 @@
-package org.optaplanner.core.impl.localsearch.decider.forager.custom;
+package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;

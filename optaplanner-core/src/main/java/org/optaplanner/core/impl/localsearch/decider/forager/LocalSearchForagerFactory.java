@@ -25,10 +25,10 @@ import org.optaplanner.core.config.localsearch.decider.forager.FinalistPodiumTyp
 import org.optaplanner.core.config.localsearch.decider.forager.ForagerType;
 import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
 import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchPickEarlyType;
-import org.optaplanner.core.impl.localsearch.decider.forager.custom.NeighbourhoodEvaluator;
-import org.optaplanner.core.impl.localsearch.decider.forager.custom.PrivacyPreservingHillClimbingForager;
-import org.optaplanner.core.impl.localsearch.decider.forager.custom.PrivacyPreservingSimulatedAnnealingForager;
-import org.optaplanner.core.impl.localsearch.decider.forager.custom.PrivacyPreservingStepCountingHillClimbingForager;
+import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.NeighbourhoodEvaluator;
+import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.PrivacyPreservingHillClimbingForager;
+import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.PrivacyPreservingSimulatedAnnealingForager;
+import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.PrivacyPreservingStepCountingHillClimbingForager;
 
 public class LocalSearchForagerFactory<Solution_> {
 
@@ -64,25 +64,18 @@ public class LocalSearchForagerFactory<Solution_> {
                     .forName(foragerConfig.getNeighbourhoodEvaluatorClass()).getDeclaredConstructor().newInstance();
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException
                 | InstantiationException e) {
-            e.printStackTrace();
+            throw new IllegalArgumentException(
+                    "Could not load NeighbourhoodEvaluator-class although forager type has been set. " + e.getMessage());
         }
-        if (foragerConfig.getForagerType() == ForagerType.SLM_HILL_CLIMBING) {
+        if (foragerConfig.getForagerType() == ForagerType.PP_HILL_CLIMBING) {
             return new PrivacyPreservingHillClimbingForager<>(acceptedCountLimit_, neighbourhoodEvaluator);
-        } else if (foragerConfig.getForagerType() == ForagerType.SLM_STEP_COUNTING_HILL_CLIMBING) {
+        } else if (foragerConfig.getForagerType() == ForagerType.PP_STEP_COUNTING_HILL_CLIMBING) {
             return new PrivacyPreservingStepCountingHillClimbingForager<>(acceptedCountLimit_, 20,
                     StepCountingHillClimbingType.STEP, neighbourhoodEvaluator);
-        } else if (foragerConfig.getForagerType() == ForagerType.SLM_SIMULATED_ANNEALING) {
+        } else if (foragerConfig.getForagerType() == ForagerType.PP_SIMULATED_ANNEALING) {
             return new PrivacyPreservingSimulatedAnnealingForager<>(acceptedCountLimit_, HardSoftScore.of(0, 500),
                     neighbourhoodEvaluator);
         }
         return null;
-    }
-
-    public NeighbourhoodEvaluator<Solution_> getNeighbourhoodEvaluator() {
-        return neighbourhoodEvaluator;
-    }
-
-    public void setNeighbourhoodEvaluator(NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator) {
-        this.neighbourhoodEvaluator = neighbourhoodEvaluator;
     }
 }

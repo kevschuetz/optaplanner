@@ -98,7 +98,12 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
         LocalSearchDecider<Solution_> decider;
         if (moveThreadCount == null) {
             decider = new LocalSearchDecider<>(configPolicy.getLogIndentation(), termination, moveSelector, acceptor, forager);
-            decider.setPrivacyPreserving("privacyPreserving".equals(phaseConfig.getPhaseType()));
+            decider.setPrivacyPreserving("PRIVACY_PRESERVING".equals(phaseConfig.getPhaseType()));
+            if (decider.isPrivacyPreserving() && (phaseConfig.getAcceptorConfig() == null || phaseConfig.getAcceptorConfig()
+                    .getAcceptorTypeList().stream().findFirst().get() != AcceptorType.CONSTRAINT_AWARE)) {
+                throw new IllegalStateException(
+                        "Phase-type is set to PRIVACY_PRESERVING but acceptor-type not set to CONSTRAINT_AWARE.");
+            }
         } else {
             Integer moveThreadBufferSize = configPolicy.getMoveThreadBufferSize();
             if (moveThreadBufferSize == null) {
