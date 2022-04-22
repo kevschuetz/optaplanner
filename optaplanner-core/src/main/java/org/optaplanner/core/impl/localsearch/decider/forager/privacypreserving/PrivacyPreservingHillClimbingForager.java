@@ -1,6 +1,5 @@
 package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
-import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 
 public class PrivacyPreservingHillClimbingForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
@@ -17,10 +16,10 @@ public class PrivacyPreservingHillClimbingForager<Solution_> extends AbstractPri
      */
     @Override
     protected boolean isAccepted(LocalSearchMoveScope<Solution_> winner) {
-        var score = (HardSoftScore) winner.getScore();
+        var score = winner.getScore();
 
         // Pick move only if score gets improved
-        if (score.compareTo(highScore) >= 0) {
+        if (score.compareTo(winner.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore()) >= 0) {
             logger.info("Found new winner with score: " + score);
             return true;
         }

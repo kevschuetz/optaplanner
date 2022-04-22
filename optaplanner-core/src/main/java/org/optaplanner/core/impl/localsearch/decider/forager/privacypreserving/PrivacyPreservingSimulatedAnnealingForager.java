@@ -1,7 +1,6 @@
 package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
 import org.optaplanner.core.api.score.Score;
-import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
@@ -24,17 +23,11 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
 
     @Override
     protected boolean isAccepted(LocalSearchMoveScope<Solution_> stepWinner) {
-        HardSoftScore moveScore = (HardSoftScore) stepWinner.getScore();
-        // Adjust starting temperature at the beginning of the optimization according to first score encountered
-        if (this.iterations == 1) {
-            this.startingTemperature =
-                    ScoreUtils.parseScore(HardSoftScore.class, "0hard/" + moveScore.getSoftScore() / 100 + "soft");
-            logger.info("Set starting temperature to " + moveScore.getSoftScore() / 100 + " for soft score of "
-                    + moveScore.getSoftScore());
-        }
-
+        LocalSearchPhaseScope<Solution_> phaseScope = stepWinner.getStepScope().getPhaseScope();
+        Score lastStepScore = phaseScope.getLastCompletedStepScope().getScore();
+        Score moveScore = stepWinner.getScore();
         // Pick move if it increases the score
-        if (moveScore.compareTo(highScore) >= 0) {
+        if (moveScore.compareTo(lastStepScore) >= 0) {
             logger.info("Found new winner with score: " + moveScore);
             return true;
         }
@@ -42,7 +35,7 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
         // Pick move stochastically according to score difference and temperature
 
         // Get score differences
-        Score moveScoreDifference = highScore.subtract(moveScore);
+        Score moveScoreDifference = lastStepScore.subtract(moveScore);
         double[] moveScoreDifferenceLevels = ScoreUtils.extractLevelDoubles(moveScoreDifference);
 
         // Adjust accept chance for every level

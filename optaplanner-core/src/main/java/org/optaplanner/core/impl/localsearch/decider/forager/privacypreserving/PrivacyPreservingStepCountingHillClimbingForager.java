@@ -1,7 +1,6 @@
 package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
 import org.optaplanner.core.api.score.Score;
-import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.config.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingType;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
@@ -10,7 +9,7 @@ import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
     protected int stepCountingHillClimbingSize = 5;
 
-    protected HardSoftScore thresholdScore;
+    protected Score thresholdScore;
     protected int count = -1;
 
     protected StepCountingHillClimbingType stepCountingHillClimbingType;
@@ -18,14 +17,16 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
     public PrivacyPreservingStepCountingHillClimbingForager(int acceptedCountLimit_, int stepCountingHillClimbingSize,
             StepCountingHillClimbingType stepCountingHillClimbingType_, NeighbourhoodEvaluator<Solution_> evaluator) {
         super(acceptedCountLimit_, evaluator);
+        this.stepCountingHillClimbingSize = stepCountingHillClimbingSize;
         this.stepCountingHillClimbingType = stepCountingHillClimbingType_;
     }
 
     @Override
     protected boolean isAccepted(LocalSearchMoveScope<Solution_> winner) {
-        var score = (HardSoftScore) winner.getScore();
+        var score = winner.getScore();
         // Pick move if score gets improved or thresholdScore does not get violated
-        if (score.compareTo(highScore) >= 0 || score.compareTo(thresholdScore) >= 0) {
+        if (score.compareTo(winner.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore()) >= 0
+                || score.compareTo(thresholdScore) >= 0) {
             logger.info("Found new winner with score: " + score);
             return true;
         }
@@ -52,7 +53,7 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
         // Update thresholdscore and reset count if necessary
         count += determineCountIncrement(stepScope);
         if (count >= stepCountingHillClimbingSize) {
-            thresholdScore = highScore;
+            thresholdScore = stepScope.getScore();
             count = 0;
         }
     }

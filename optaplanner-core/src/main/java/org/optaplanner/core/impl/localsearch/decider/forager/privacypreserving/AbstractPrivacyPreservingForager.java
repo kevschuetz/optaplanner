@@ -2,8 +2,7 @@ package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
 import java.util.*;
 
-import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
-import org.optaplanner.core.api.score.director.ScoreDirector;
+import org.optaplanner.core.api.score.Score;
 import org.optaplanner.core.impl.localsearch.decider.forager.AbstractLocalSearchForager;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
@@ -30,12 +29,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     // Privacy Engine
     private final NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator;
 
-    // Score director to execute moves
-    protected ScoreDirector<Solution_> scoreDirector;
-    protected InnerScoreDirector<Solution_, ?> innerScoreDirector;
-
-    // Highest score encountered
-    HardSoftScore highScore;
+    private InnerScoreDirector<Solution_, ?> scoreDirector;
 
     // Current winner of the search phase
     protected LocalSearchMoveScope<Solution_> lastPickedMoveScope;
@@ -56,7 +50,6 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         logger.info("Initialized " + this.getClass());
         this.acceptedCountLimit = acceptedCountLimit;
 
-        this.highScore = HardSoftScore.of(0, 0);
         this.candidateMoveScopes = new ArrayList<>();
         this.solutionMoveScopeMap = new HashMap<>();
         this.lastPickedMoveScope = null;
@@ -69,10 +62,8 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     @Override
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
-        this.scoreDirector = phaseScope.getScoreDirector();
-        if (scoreDirector != null)
-            this.innerScoreDirector = (InnerScoreDirector<Solution_, ?>) scoreDirector;
         this.iterations = 0;
+        scoreDirector = phaseScope.getScoreDirector();
     }
 
     /**
@@ -150,7 +141,6 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
 
         // Return winner if accepted
         if (this.isAccepted(winner)) {
-            this.highScore = (HardSoftScore) winner.getScore();
             this.lastPickedMoveScope = winner;
             return winner;
         }
@@ -191,25 +181,25 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
      * 
      * @return the map
      */
-    private Map<HardSoftScore, List<LocalSearchMoveScope<Solution_>>> getOrder() {
+    private Map<Score, List<LocalSearchMoveScope<Solution_>>> getOrder() {
         mapCandidatesToMoveScopes();
         return evaluateStepCandidates();
     }
 
-    private Map<HardSoftScore, List<LocalSearchMoveScope<Solution_>>> evaluateStepCandidates() {
+    private Map<Score, List<LocalSearchMoveScope<Solution_>>> evaluateStepCandidates() {
         List<Solution_> candidates = new ArrayList<>(solutionMoveScopeMap.keySet());
-        Map<HardSoftScore, List<Solution_>> map = neighbourhoodEvaluator.evaluateNeighbourhood(candidates);
+        Map<Score, List<Solution_>> map = neighbourhoodEvaluator.evaluateNeighbourhood(candidates);
         return this.mapOrderOfMoveScopes(map);
     }
 
-    private Map<HardSoftScore, List<LocalSearchMoveScope<Solution_>>>
-            mapOrderOfMoveScopes(Map<HardSoftScore, List<Solution_>> map) {
+    private Map<Score, List<LocalSearchMoveScope<Solution_>>>
+            mapOrderOfMoveScopes(Map<Score, List<Solution_>> map) {
         var optEntry = map.entrySet().stream().findFirst();
 
         // Initialize Result
-        HashMap<HardSoftScore, List<LocalSearchMoveScope<Solution_>>> result = new HashMap<>();
+        HashMap<Score, List<LocalSearchMoveScope<Solution_>>> result = new HashMap<>();
         List<LocalSearchMoveScope<Solution_>> sortedMoveScopeList = new ArrayList<>();
-        HardSoftScore maxScore = null;
+        Score maxScore = null;
 
         // Get sorted list and max score from privacy engine
         List<Solution_> sortedFlightPrioritizationList = new ArrayList<>();
@@ -227,9 +217,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
 
         result.put(maxScore, sortedMoveScopeList);
 
-        if (!sortedMoveScopeList.isEmpty())
-            return result;
-        return null;
+        return result;
     }
 
     /**
@@ -242,7 +230,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
             var undoMove = moveScope.getMove().doMove(scoreDirector);
 
             // Map the flight-prioritization to the index of the move
-            solutionMoveScopeMap.put(innerScoreDirector.cloneWorkingSolution(), moveScope);
+            solutionMoveScopeMap.put(scoreDirector.cloneWorkingSolution(), moveScope);
 
             // Undo the move
             undoMove.doMove(scoreDirector);
