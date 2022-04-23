@@ -124,7 +124,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         stepScope.setAcceptedMoveCount(acceptedMoveCount);
 
         // Request the evaluation from the privacy engine
-        var orderMap = getOrder();
+        var orderMap = getOrderedMoveScopes();
 
         if (orderMap == null || orderMap.isEmpty())
             return lastPickedMoveScope;
@@ -181,19 +181,19 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
      * 
      * @return the map
      */
-    private Map<Score, List<LocalSearchMoveScope<Solution_>>> getOrder() {
-        mapCandidatesToMoveScopes();
+    private Map<Score, List<LocalSearchMoveScope<Solution_>>> getOrderedMoveScopes() {
+        mapCandidateSolutionsToMoveScopes();
         return evaluateStepCandidates();
     }
 
     private Map<Score, List<LocalSearchMoveScope<Solution_>>> evaluateStepCandidates() {
         List<Solution_> candidates = new ArrayList<>(solutionMoveScopeMap.keySet());
         Map<Score, List<Solution_>> map = neighbourhoodEvaluator.evaluateNeighbourhood(candidates);
-        return this.mapOrderOfMoveScopes(map);
+        return this.mapOrderedSolutionsToMoveScopes(map);
     }
 
     private Map<Score, List<LocalSearchMoveScope<Solution_>>>
-            mapOrderOfMoveScopes(Map<Score, List<Solution_>> map) {
+            mapOrderedSolutionsToMoveScopes(Map<Score, List<Solution_>> map) {
         var optEntry = map.entrySet().stream().findFirst();
 
         // Initialize Result
@@ -223,7 +223,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     /**
      * Initializes the collections for each step required for communication with the privacy-engine
      */
-    private void mapCandidatesToMoveScopes() {
+    private void mapCandidateSolutionsToMoveScopes() {
         // Iterate over the accepted move-scopes of the step
         for (var moveScope : candidateMoveScopes) {
             // Execute the move

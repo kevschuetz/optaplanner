@@ -19,16 +19,15 @@ package org.optaplanner.core.impl.localsearch.decider.forager;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
+import org.optaplanner.core.api.score.Score;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.config.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingType;
 import org.optaplanner.core.config.localsearch.decider.forager.FinalistPodiumType;
 import org.optaplanner.core.config.localsearch.decider.forager.ForagerType;
 import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
 import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchPickEarlyType;
-import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.NeighbourhoodEvaluator;
-import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.PrivacyPreservingHillClimbingForager;
-import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.PrivacyPreservingSimulatedAnnealingForager;
-import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.PrivacyPreservingStepCountingHillClimbingForager;
+import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.*;
+import org.optaplanner.core.impl.score.definition.ScoreDefinition;
 
 public class LocalSearchForagerFactory<Solution_> {
 
@@ -38,6 +37,7 @@ public class LocalSearchForagerFactory<Solution_> {
 
     private final LocalSearchForagerConfig foragerConfig;
     private NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator;
+    private ScoreDefinition scoreDefinition;
 
     public LocalSearchForagerFactory(LocalSearchForagerConfig foragerConfig) {
         this.foragerConfig = foragerConfig;
@@ -58,24 +58,45 @@ public class LocalSearchForagerFactory<Solution_> {
     }
 
     private LocalSearchForager<Solution_> buildCustomForager() {
-        int acceptedCountLimit_ = Objects.requireNonNullElse(foragerConfig.getAcceptedCountLimit(), Integer.MAX_VALUE);
+        int acceptedCountLimit_ = Objects.requireNonNullElse(foragerConfig.getAcceptedCountLimit(), 50);
         try {
             neighbourhoodEvaluator = (NeighbourhoodEvaluator<Solution_>) Class
                     .forName(foragerConfig.getNeighbourhoodEvaluatorClass()).getDeclaredConstructor().newInstance();
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException
                 | InstantiationException e) {
             throw new IllegalArgumentException(
-                    "Could not load NeighbourhoodEvaluator-class although forager type has been set. " + e.getMessage());
+                    "Could not load NeighbourhoodEvaluator-class although forager type has been set. Nested exception is:"
+                            + e.getMessage());
         }
         if (foragerConfig.getForagerType() == ForagerType.PP_HILL_CLIMBING) {
             return new PrivacyPreservingHillClimbingForager<>(acceptedCountLimit_, neighbourhoodEvaluator);
         } else if (foragerConfig.getForagerType() == ForagerType.PP_STEP_COUNTING_HILL_CLIMBING) {
-            return new PrivacyPreservingStepCountingHillClimbingForager<>(acceptedCountLimit_, 20,
-                    StepCountingHillClimbingType.STEP, neighbourhoodEvaluator);
-        } else if (foragerConfig.getForagerType() == ForagerType.PP_SIMULATED_ANNEALING) {
-            return new PrivacyPreservingSimulatedAnnealingForager<>(acceptedCountLimit_, HardSoftScore.of(0, 500),
+            return new PrivacyPreservingStepCountingHillClimbingForager<>(acceptedCountLimit_,
+                    Objects.requireNonNullElse(foragerConfig.getStepCountingHillClimbingSize(), 20),
+                    Objects.requireNonNullElse(foragerConfig.getStepCountingHillClimbingType(),
+                            StepCountingHillClimbingType.STEP),
                     neighbourhoodEvaluator);
+        } else if (foragerConfig.getForagerType() == ForagerType.PP_SIMULATED_ANNEALING) {
+            Score startingTemperature =
+                    foragerConfig.getSimulatedAnnealingStartingTemperature() != null && scoreDefinition != null
+                            ? scoreDefinition.parseScore(foragerConfig.getSimulatedAnnealingStartingTemperature())
+                            : HardSoftScore.of(0, 500);
+            return new PrivacyPreservingSimulatedAnnealingForager<>(acceptedCountLimit_, startingTemperature,
+                    neighbourhoodEvaluator);
+        } else if (foragerConfig.getForagerType() == ForagerType.PP_GREAT_DELUGE) {
+            var forager = new PrivacyPreservingGreatDelugeForager<>(acceptedCountLimit_, neighbourhoodEvaluator);
+            forager.setWaterLevelIncrementRatio(
+                    Objects.requireNonNullElse(foragerConfig.getGreatDelugeWaterLevelIncrementRatio(), 0.005));
+            return forager;
         }
         return null;
+    }
+
+    public ScoreDefinition getScoreDefinition() {
+        return scoreDefinition;
+    }
+
+    public void setScoreDefinition(ScoreDefinition scoreDefinition) {
+        this.scoreDefinition = scoreDefinition;
     }
 }

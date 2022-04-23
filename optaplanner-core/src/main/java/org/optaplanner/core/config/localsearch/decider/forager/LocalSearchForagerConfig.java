@@ -22,6 +22,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 import org.optaplanner.core.config.AbstractConfig;
+import org.optaplanner.core.config.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingType;
 import org.optaplanner.core.config.util.ConfigUtils;
 
 @XmlType(propOrder = {
@@ -30,7 +31,11 @@ import org.optaplanner.core.config.util.ConfigUtils;
         "foragerType",
         "neighbourhoodEvaluatorClass",
         "finalistPodiumType",
-        "breakTieRandomly"
+        "breakTieRandomly",
+        "stepCountingHillClimbingSize",
+        "stepCountingHillClimbingType",
+        "greatDelugeWaterLevelIncrementRatio",
+        "simulatedAnnealingStartingTemperature"
 })
 public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerConfig> {
 
@@ -38,6 +43,11 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
     protected Integer acceptedCountLimit = null;
     protected FinalistPodiumType finalistPodiumType = null;
     protected Boolean breakTieRandomly = null;
+    protected Integer stepCountingHillClimbingSize = null;
+    protected StepCountingHillClimbingType stepCountingHillClimbingType = null;
+
+    protected String simulatedAnnealingStartingTemperature = null;
+    protected Double greatDelugeWaterLevelIncrementRatio = null;
 
     @XmlElement(name = "foragerType")
     private ForagerType foragerType = null;
@@ -92,6 +102,37 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
         this.breakTieRandomly = breakTieRandomly;
     }
 
+    public Integer getStepCountingHillClimbingSize() {
+        return stepCountingHillClimbingSize;
+    }
+
+    public void setStepCountingHillClimbingSize(Integer stepCountingHillClimbingSize) {
+        this.stepCountingHillClimbingSize = stepCountingHillClimbingSize;
+    }
+
+    public StepCountingHillClimbingType getStepCountingHillClimbingType() {
+        return stepCountingHillClimbingType;
+    }
+
+    public void setStepCountingHillClimbingType(StepCountingHillClimbingType stepCountingHillClimbingType) {
+        this.stepCountingHillClimbingType = stepCountingHillClimbingType;
+    }
+
+    public String getSimulatedAnnealingStartingTemperature() {
+        return simulatedAnnealingStartingTemperature;
+    }
+
+    public void setSimulatedAnnealingStartingTemperature(String simulatedAnnealingStartingTemperature) {
+        this.simulatedAnnealingStartingTemperature = simulatedAnnealingStartingTemperature;
+    }
+
+    public Double getGreatDelugeWaterLevelIncrementRatio() {
+        return greatDelugeWaterLevelIncrementRatio;
+    }
+
+    public void setGreatDelugeWaterLevelIncrementRatio(Double greatDelugeWaterLevelIncrementRatio) {
+        this.greatDelugeWaterLevelIncrementRatio = greatDelugeWaterLevelIncrementRatio;
+    }
     // ************************************************************************
     // With methods
     // ************************************************************************
@@ -127,6 +168,22 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
         return this;
     }
 
+    public LocalSearchForagerConfig withStepCountingHillClimbingSize(Integer stepCountingHillClimbingSize) {
+        this.stepCountingHillClimbingSize = stepCountingHillClimbingSize;
+        return this;
+    }
+
+    public LocalSearchForagerConfig
+            withStepCountingHillClimbingType(StepCountingHillClimbingType stepCountingHillClimbingType) {
+        this.stepCountingHillClimbingType = stepCountingHillClimbingType;
+        return this;
+    }
+
+    public LocalSearchForagerConfig withSimulatedAnnealingStartingTemperature(String simulatedAnnealingStartingTemperature) {
+        this.simulatedAnnealingStartingTemperature = simulatedAnnealingStartingTemperature;
+        return this;
+    }
+
     @Override
     public LocalSearchForagerConfig inherit(LocalSearchForagerConfig inheritedConfig) {
         foragerType = ConfigUtils.inheritOverwritableProperty(foragerType,
@@ -141,6 +198,14 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
                 inheritedConfig.getFinalistPodiumType());
         breakTieRandomly = ConfigUtils.inheritOverwritableProperty(breakTieRandomly,
                 inheritedConfig.getBreakTieRandomly());
+        stepCountingHillClimbingSize = ConfigUtils.inheritOverwritableProperty(stepCountingHillClimbingSize,
+                inheritedConfig.getStepCountingHillClimbingSize());
+        stepCountingHillClimbingType = ConfigUtils.inheritOverwritableProperty(stepCountingHillClimbingType,
+                inheritedConfig.getStepCountingHillClimbingType());
+        greatDelugeWaterLevelIncrementRatio = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementRatio,
+                inheritedConfig.getGreatDelugeWaterLevelIncrementRatio());
+        simulatedAnnealingStartingTemperature = ConfigUtils.inheritOverwritableProperty(simulatedAnnealingStartingTemperature,
+                inheritedConfig.getSimulatedAnnealingStartingTemperature());
         return this;
     }
 

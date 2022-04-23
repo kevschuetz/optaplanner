@@ -200,7 +200,9 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
                             + ") is not implemented.");
             }
         }
-        return LocalSearchForagerFactory.<Solution_> create(foragerConfig_).buildForager();
+        var factory = LocalSearchForagerFactory.<Solution_> create(foragerConfig_);
+        factory.setScoreDefinition(configPolicy.getScoreDefinition());
+        return factory.buildForager();
     }
 
     protected MoveSelector<Solution_> buildMoveSelector(HeuristicConfigPolicy<Solution_> configPolicy) {
