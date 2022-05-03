@@ -51,6 +51,15 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
         if (!initializedStartingLevel) {
             startingWaterLevel = stepWinner.getScore();
             currentWaterLevel = startingWaterLevel;
+            waterLevelIncrementScore = startingWaterLevel.multiply(waterLevelIncrementRatio);
+            var scoreLevels = waterLevelIncrementScore.toLevelNumbers();
+            var isNegative = false;
+            for (int i = 0; i < scoreLevels.length; i++) {
+                if (scoreLevels[i].doubleValue() < 0)
+                    isNegative = true;
+            }
+            if (isNegative)
+                waterLevelIncrementScore.multiply(-1);
             initializedStartingLevel = true;
             return true;
         }
@@ -71,6 +80,12 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
     @Override
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
+        if(initialWaterLevel != null){
+            startingWaterLevel = initialWaterLevel;
+            currentWaterLevel = startingWaterLevel;
+            initializedStartingLevel = true;
+            waterLevelIncrementScore = startingWaterLevel.multiply(waterLevelIncrementRatio);
+        }
         if (waterLevelIncrementRatio != null) {
             currentWaterLevelRatio = 0.0;
         }
@@ -97,7 +112,7 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
             currentWaterLevel = startingWaterLevel.add(
                     // TODO targetWaterLevel.subtract(startingWaterLevel).multiply(waterLevelIncrementRatio);
                     // The startingWaterLevel.negate() is short for zeroScore.subtract(startingWaterLevel)
-                    startingWaterLevel.multiply(currentWaterLevelRatio));
+                    startingWaterLevel.negate().multiply(currentWaterLevelRatio));
         }
     }
 

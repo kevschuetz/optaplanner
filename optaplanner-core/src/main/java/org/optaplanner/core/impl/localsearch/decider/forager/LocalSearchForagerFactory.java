@@ -88,6 +88,9 @@ public class LocalSearchForagerFactory<Solution_> {
             forager.setWaterLevelIncrementRatio(
                     Objects.requireNonNullElse(foragerConfig.getGreatDelugeWaterLevelIncrementRatio(), 0.005));
             return forager;
+        } else if(foragerConfig.getForagerType() == ForagerType.PP_TABU_SEARCH){
+            var forager = new PrivacyPreservingTabuSearchForager<>(acceptedCountLimit_, neighbourhoodEvaluator, 1000);
+            return forager;
         }
         return null;
     }
