@@ -1,11 +1,11 @@
 package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
-import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
-import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
+import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 
 public class PrivacyPreservingTabuSearchForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
     private List<Solution_> tabuList;
