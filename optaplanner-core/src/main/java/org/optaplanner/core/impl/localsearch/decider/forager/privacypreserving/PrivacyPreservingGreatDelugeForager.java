@@ -80,7 +80,7 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
     @Override
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
-        if(initialWaterLevel != null){
+        if (initialWaterLevel != null) {
             startingWaterLevel = initialWaterLevel;
             currentWaterLevel = startingWaterLevel;
             initializedStartingLevel = true;
