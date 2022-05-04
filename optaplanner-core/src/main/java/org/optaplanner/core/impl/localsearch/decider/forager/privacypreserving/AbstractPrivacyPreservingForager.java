@@ -3,6 +3,7 @@ package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 import java.util.*;
 
 import org.optaplanner.core.api.score.Score;
+import org.optaplanner.core.config.localsearch.decider.forager.EvaluationType;
 import org.optaplanner.core.impl.localsearch.decider.forager.AbstractLocalSearchForager;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
@@ -42,11 +43,11 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     protected int iterations;
 
     protected AbstractPrivacyPreservingForager() {
-        this(50, null);
+        this(50, null, EvaluationType.BEST_CANDIDATE);
     }
 
     protected AbstractPrivacyPreservingForager(int acceptedCountLimit,
-            NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator) {
+            NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator, EvaluationType evaluationType) {
         logger.info("Initialized " + this.getClass());
         this.acceptedCountLimit = acceptedCountLimit;
 
@@ -124,20 +125,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         stepScope.setAcceptedMoveCount(acceptedMoveCount);
 
         // Request the evaluation from the privacy engine
-        var orderMap = getOrderedMoveScopes();
-
-        if (orderMap == null || orderMap.isEmpty())
-            return lastPickedMoveScope;
-
-        // Extract the winner and assign the high score to the move
-        var optOrderEntry = orderMap.entrySet().stream().findFirst();
-        var optWinner = optOrderEntry.get().getValue().stream().findFirst();
-
-        if (optWinner.isEmpty())
-            return lastPickedMoveScope;
-
-        LocalSearchMoveScope<Solution_> winner = optWinner.get();
-        winner.setScore(optOrderEntry.get().getKey());
+        LocalSearchMoveScope<Solution_> winner = getStepWinner();
 
         // Return winner if accepted
         if (this.isAccepted(winner)) {
@@ -181,15 +169,26 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
      * 
      * @return the map
      */
-    private Map<Score, List<LocalSearchMoveScope<Solution_>>> getOrderedMoveScopes() {
+    private LocalSearchMoveScope<Solution_> getStepWinner() {
         mapCandidateSolutionsToMoveScopes();
         return evaluateStepCandidates();
     }
 
-    private Map<Score, List<LocalSearchMoveScope<Solution_>>> evaluateStepCandidates() {
+    private LocalSearchMoveScope<Solution_> evaluateStepCandidates() {
         List<Solution_> candidates = new ArrayList<>(solutionMoveScopeMap.keySet());
-        Map<Score, List<Solution_>> map = neighbourhoodEvaluator.evaluateNeighbourhood(candidates);
-        return this.mapOrderedSolutionsToMoveScopes(map);
+        Map<Score, Solution_> stepWinner = neighbourhoodEvaluator.getBestSolutionFromNeighbourhood(candidates);
+        var entry = stepWinner.entrySet().stream().findFirst();
+
+        if (!entry.isPresent())
+            return null;
+
+        Solution_ solution = entry.get().getValue();
+        Score score = entry.get().getKey();
+
+        var moveScope = this.solutionMoveScopeMap.get(solution);
+        moveScope.setScore(score);
+
+        return moveScope;
     }
 
     private Map<Score, List<LocalSearchMoveScope<Solution_>>>

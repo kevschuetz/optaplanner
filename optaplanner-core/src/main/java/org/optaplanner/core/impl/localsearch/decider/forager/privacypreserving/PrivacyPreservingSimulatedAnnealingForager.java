@@ -1,6 +1,7 @@
 package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
 import org.optaplanner.core.api.score.Score;
+import org.optaplanner.core.config.localsearch.decider.forager.EvaluationType;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
@@ -16,8 +17,8 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
     protected double temperatureMinimum = 1.0E-100;
 
     public PrivacyPreservingSimulatedAnnealingForager(int acceptedCountLimit_, Score startingTemperature,
-            NeighbourhoodEvaluator<Solution_> evaluator) {
-        super(acceptedCountLimit_, evaluator);
+            NeighbourhoodEvaluator<Solution_> evaluator, EvaluationType evaluationType) {
+        super(acceptedCountLimit_, evaluator, evaluationType);
         this.startingTemperature = startingTemperature;
     }
 

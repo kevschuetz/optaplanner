@@ -1,11 +1,13 @@
 package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
+import org.optaplanner.core.config.localsearch.decider.forager.EvaluationType;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 
 public class PrivacyPreservingHillClimbingForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
 
-    public PrivacyPreservingHillClimbingForager(int acceptedCountLimit_, NeighbourhoodEvaluator<Solution_> evaluator) {
-        super(acceptedCountLimit_, evaluator);
+    public PrivacyPreservingHillClimbingForager(int acceptedCountLimit_, NeighbourhoodEvaluator<Solution_> evaluator,
+            EvaluationType evaluationType) {
+        super(acceptedCountLimit_, evaluator, evaluationType);
     }
 
     /**

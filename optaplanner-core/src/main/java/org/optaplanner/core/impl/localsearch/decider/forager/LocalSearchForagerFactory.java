@@ -22,10 +22,7 @@ import java.util.Objects;
 import org.optaplanner.core.api.score.Score;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.config.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingType;
-import org.optaplanner.core.config.localsearch.decider.forager.FinalistPodiumType;
-import org.optaplanner.core.config.localsearch.decider.forager.ForagerType;
-import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
-import org.optaplanner.core.config.localsearch.decider.forager.LocalSearchPickEarlyType;
+import org.optaplanner.core.config.localsearch.decider.forager.*;
 import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.*;
 import org.optaplanner.core.impl.score.definition.ScoreDefinition;
 
@@ -59,6 +56,9 @@ public class LocalSearchForagerFactory<Solution_> {
 
     private LocalSearchForager<Solution_> buildCustomForager() {
         int acceptedCountLimit_ = Objects.requireNonNullElse(foragerConfig.getAcceptedCountLimit(), 50);
+        EvaluationType evaluationType =
+                Objects.requireNonNullElse(foragerConfig.getEvaluationType(), EvaluationType.BEST_CANDIDATE);
+
         try {
             neighbourhoodEvaluator = (NeighbourhoodEvaluator<Solution_>) Class
                     .forName(foragerConfig.getNeighbourhoodEvaluatorClass()).getDeclaredConstructor().newInstance();
@@ -69,28 +69,30 @@ public class LocalSearchForagerFactory<Solution_> {
                             + e.getMessage());
         }
         if (foragerConfig.getForagerType() == ForagerType.PP_HILL_CLIMBING) {
-            return new PrivacyPreservingHillClimbingForager<>(acceptedCountLimit_, neighbourhoodEvaluator);
+            return new PrivacyPreservingHillClimbingForager<>(acceptedCountLimit_, neighbourhoodEvaluator, evaluationType);
         } else if (foragerConfig.getForagerType() == ForagerType.PP_STEP_COUNTING_HILL_CLIMBING) {
             return new PrivacyPreservingStepCountingHillClimbingForager<>(acceptedCountLimit_,
                     Objects.requireNonNullElse(foragerConfig.getStepCountingHillClimbingSize(), 20),
                     Objects.requireNonNullElse(foragerConfig.getStepCountingHillClimbingType(),
                             StepCountingHillClimbingType.STEP),
-                    neighbourhoodEvaluator);
+                    neighbourhoodEvaluator, evaluationType);
         } else if (foragerConfig.getForagerType() == ForagerType.PP_SIMULATED_ANNEALING) {
             Score startingTemperature =
                     foragerConfig.getSimulatedAnnealingStartingTemperature() != null && scoreDefinition != null
                             ? scoreDefinition.parseScore(foragerConfig.getSimulatedAnnealingStartingTemperature())
                             : HardSoftScore.of(0, 500);
             return new PrivacyPreservingSimulatedAnnealingForager<>(acceptedCountLimit_, startingTemperature,
-                    neighbourhoodEvaluator);
+                    neighbourhoodEvaluator, evaluationType);
         } else if (foragerConfig.getForagerType() == ForagerType.PP_GREAT_DELUGE) {
-            var forager = new PrivacyPreservingGreatDelugeForager<>(acceptedCountLimit_, neighbourhoodEvaluator);
+            var forager =
+                    new PrivacyPreservingGreatDelugeForager<>(acceptedCountLimit_, neighbourhoodEvaluator, evaluationType);
             forager.setWaterLevelIncrementRatio(
                     Objects.requireNonNullElse(foragerConfig.getGreatDelugeWaterLevelIncrementRatio(), 0.005));
             return forager;
         } else if (foragerConfig.getForagerType() == ForagerType.PP_TABU_SEARCH) {
-            var forager = new PrivacyPreservingTabuSearchForager<>(acceptedCountLimit_, neighbourhoodEvaluator, 1000);
-            return forager;
+            var forager =
+                    new PrivacyPreservingTabuSearchForager<>(acceptedCountLimit_, neighbourhoodEvaluator, 1000, evaluationType);
+            return forager; //TODO: make size configurable
         }
         return null;
     }

@@ -4,19 +4,18 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.optaplanner.core.config.localsearch.decider.forager.EvaluationType;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 
 public class PrivacyPreservingTabuSearchForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
     private List<Solution_> tabuList;
-    private Iterator<Solution_> it;
     private int tabuListSize;
 
     public PrivacyPreservingTabuSearchForager(int acceptedCountLimit, NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator,
-            int tabuListSize) {
-        super(acceptedCountLimit, neighbourhoodEvaluator);
+            int tabuListSize, EvaluationType evaluationType) {
+        super(acceptedCountLimit, neighbourhoodEvaluator, evaluationType);
         tabuList = new ArrayList<>();
-        it = tabuList.listIterator();
         this.tabuListSize = tabuListSize;
     }
 
@@ -46,14 +45,9 @@ public class PrivacyPreservingTabuSearchForager<Solution_> extends AbstractPriva
     @Override
     public void stepEnded(LocalSearchStepScope<Solution_> stepScope) {
         super.stepEnded(stepScope);
-        for (var solution : this.solutionMoveScopeMap.keySet()) {
-            tabuList.add(solution);
-            if (tabuList.size() >= tabuListSize) {
-                if (it.hasNext()) {
-                    it.next();
-                    it.remove();
-                }
-            }
+        tabuList.addAll(this.solutionMoveScopeMap.keySet());
+        if (tabuList.size() > tabuListSize) {
+            tabuList = tabuList.subList(tabuList.size() - tabuListSize, tabuList.size());
         }
     }
 }

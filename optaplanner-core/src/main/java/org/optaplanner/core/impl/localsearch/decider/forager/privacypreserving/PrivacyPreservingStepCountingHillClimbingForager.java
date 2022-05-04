@@ -2,6 +2,7 @@ package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
 import org.optaplanner.core.api.score.Score;
 import org.optaplanner.core.config.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingType;
+import org.optaplanner.core.config.localsearch.decider.forager.EvaluationType;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
@@ -15,8 +16,9 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
     protected StepCountingHillClimbingType stepCountingHillClimbingType;
 
     public PrivacyPreservingStepCountingHillClimbingForager(int acceptedCountLimit_, int stepCountingHillClimbingSize,
-            StepCountingHillClimbingType stepCountingHillClimbingType_, NeighbourhoodEvaluator<Solution_> evaluator) {
-        super(acceptedCountLimit_, evaluator);
+            StepCountingHillClimbingType stepCountingHillClimbingType_, NeighbourhoodEvaluator<Solution_> evaluator,
+            EvaluationType evaluationType) {
+        super(acceptedCountLimit_, evaluator, evaluationType);
         this.stepCountingHillClimbingSize = stepCountingHillClimbingSize;
         this.stepCountingHillClimbingType = stepCountingHillClimbingType_;
     }

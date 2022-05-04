@@ -29,6 +29,7 @@ import org.optaplanner.core.config.util.ConfigUtils;
         "pickEarlyType",
         "acceptedCountLimit",
         "foragerType",
+        "evaluationType",
         "neighbourhoodEvaluatorClass",
         "finalistPodiumType",
         "breakTieRandomly",
@@ -52,6 +53,9 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
     @XmlElement(name = "foragerType")
     private ForagerType foragerType = null;
 
+    @XmlElement(name = "evaluationType")
+    private EvaluationType evaluationType = null;
+
     public String neighbourhoodEvaluatorClass;
 
     public ForagerType getForagerType() {
@@ -64,6 +68,14 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
 
     public void setNeighbourhoodEvaluatorClass(String neighbourhoodEvaluatorClass) {
         this.neighbourhoodEvaluatorClass = neighbourhoodEvaluatorClass;
+    }
+
+    public EvaluationType getEvaluationType() {
+        return evaluationType;
+    }
+
+    public void setEvaluationType(EvaluationType evaluationType) {
+        this.evaluationType = evaluationType;
     }
 
     public void setForagerType(ForagerType foragerType) {
@@ -147,6 +159,11 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
         return this;
     }
 
+    public LocalSearchForagerConfig withEvaluationType(EvaluationType evaluationType) {
+        this.evaluationType = evaluationType;
+        return this;
+    }
+
     public LocalSearchForagerConfig
             withNeighbourhoodEvaluatorClass(String neighbourhoodEvaluatorClass) {
         this.neighbourhoodEvaluatorClass = neighbourhoodEvaluatorClass;
@@ -206,6 +223,8 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
                 inheritedConfig.getGreatDelugeWaterLevelIncrementRatio());
         simulatedAnnealingStartingTemperature = ConfigUtils.inheritOverwritableProperty(simulatedAnnealingStartingTemperature,
                 inheritedConfig.getSimulatedAnnealingStartingTemperature());
+        evaluationType = ConfigUtils.inheritOverwritableProperty(evaluationType,
+                inheritedConfig.getEvaluationType());
         return this;
     }
 

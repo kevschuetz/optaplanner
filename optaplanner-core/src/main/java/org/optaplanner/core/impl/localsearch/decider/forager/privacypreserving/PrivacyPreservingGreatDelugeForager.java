@@ -1,6 +1,7 @@
 package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 
 import org.optaplanner.core.api.score.Score;
+import org.optaplanner.core.config.localsearch.decider.forager.EvaluationType;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
@@ -18,8 +19,8 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
     boolean initializedStartingLevel = false;
 
     public PrivacyPreservingGreatDelugeForager(int acceptedCountLimit_,
-            NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator) {
-        super(acceptedCountLimit_, neighbourhoodEvaluator);
+            NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator, EvaluationType evaluationType) {
+        super(acceptedCountLimit_, neighbourhoodEvaluator, evaluationType);
     }
 
     public Score getWaterLevelIncrementScore() {
