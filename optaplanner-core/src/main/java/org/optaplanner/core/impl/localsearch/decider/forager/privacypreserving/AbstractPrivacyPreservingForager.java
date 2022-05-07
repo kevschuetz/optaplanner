@@ -42,6 +42,10 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     // Statistics
     protected int iterations;
 
+    //Evaluation method flag
+    protected final boolean isEvaluationAboveThreshold;
+    protected final double evaluationThreshold;
+
     protected AbstractPrivacyPreservingForager() {
         this(50, null, EvaluationType.BEST_CANDIDATE);
     }
@@ -55,6 +59,8 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         this.solutionMoveScopeMap = new HashMap<>();
         this.lastPickedMoveScope = null;
         this.neighbourhoodEvaluator = neighbourhoodEvaluator;
+        this.isEvaluationAboveThreshold = false; //TODO : configure
+        this.evaluationThreshold = 0.9; //TODO : configure
     }
 
     // ************************************************************************
@@ -176,7 +182,35 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
 
     private LocalSearchMoveScope<Solution_> evaluateStepCandidates() {
         List<Solution_> candidates = new ArrayList<>(solutionMoveScopeMap.keySet());
-        Map<Score, Solution_> stepWinner = neighbourhoodEvaluator.getBestSolutionFromNeighbourhood(candidates);
+        Map<Score, Solution_> stepWinner;
+        if(isEvaluationAboveThreshold){
+            var winningCandidatesMap = neighbourhoodEvaluator.getCandidatesAboveThreshold(candidates, evaluationThreshold);
+            var winningCandidatesList = winningCandidatesMap.entrySet().stream().findFirst().get().getValue();
+            var highScore = winningCandidatesMap.entrySet().stream().findFirst().get().getKey();
+
+            Random random = new Random();
+            var randomCandidate = winningCandidatesList.get(random.nextInt(winningCandidatesList.size()));
+            var delta = 1 - evaluationThreshold;
+            var estimatedDelta = delta / 2;
+            var highScoreLevelNumbers = highScore.toLevelNumbers();
+            var isNegative = false;
+            for (Number highScoreLevelNumber : highScoreLevelNumbers) {
+                if (highScoreLevelNumber.doubleValue() < 0) isNegative = true;
+            }
+            double factor;
+            if(isNegative){
+                factor = 1 + estimatedDelta;
+            }else{
+                factor = 1 - estimatedDelta;
+            }
+            // TODO: test with test case that has negative highscore
+            var estimatedScore = highScore.multiply(factor);
+
+            stepWinner = new HashMap<>();
+            stepWinner.put(estimatedScore, randomCandidate);
+        }else{
+            stepWinner = neighbourhoodEvaluator.getBestSolutionFromNeighbourhood(candidates);
+        }
         var entry = stepWinner.entrySet().stream().findFirst();
 
         if (!entry.isPresent())
