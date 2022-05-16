@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalSearchPhaseLifecycleListenerAdapter<Solution_>
         implements LocalSearchForager<Solution_> {
     protected final transient Logger logger = LoggerFactory.getLogger(getClass());
+    private LocalSearchStatistics localSearchStatistics;
+    protected StepStatistic currentStepStatistic;
     /**
      * Specifies how many moves are gathered before a winner is picked.
      */
@@ -131,6 +133,8 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
         candidateMoveScopes.clear();
         solutionMoveScopeMap.clear();
         iterations++;
+        currentStepStatistic = new StepStatistic();
+        localSearchStatistics.getSteps().add(currentStepStatistic);
     }
 
     /**
@@ -182,11 +186,19 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
         // Request the evaluation from the privacy engine
         LocalSearchMoveScope<Solution_> winner = getStepWinner();
 
+        // Initialize statistic for step
+        currentStepStatistic.setStepIndex(stepScope.getStepIndex());
+
         // Return winner if accepted
         if (this.isAccepted(winner)) {
             this.lastPickedMoveScope = winner;
+            currentStepStatistic.setFoundNewSolution(true);
+            currentStepStatistic.setStepScore(winner != null ? winner.getScore() : null);
             return winner;
         }
+        currentStepStatistic.setFoundNewSolution(false);
+        currentStepStatistic.setStepScore(lastPickedMoveScope.getScore());
+
         // Else return current winner
         logger.error("REACHED LOCAL OPTIMUM, RESTARTING THE STEP!");
         return lastPickedMoveScope;
@@ -197,6 +209,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
         super.phaseEnded(phaseScope);
         selectedMoveCount = 0L;
         acceptedMoveCount = 0L;
+        this.localSearchStatistics.setIterations(iterations);
     }
 
     @Override
@@ -244,10 +257,13 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
             Random random = new Random();
             int index = random.nextInt(aboveThresholdCandidates.size());
             Solution_ randomCandidate = aboveThresholdCandidates.get(index);
-            logger.info("Picked candidate " + index + " of " + aboveThresholdCandidates.size()
-                    + " candidates above threshold as step winner.");
+
             stepWinner = new HashMap<>();
             stepWinner.put(averageScore, randomCandidate);
+
+            logger.info("Picked candidate " + index + " of " + aboveThresholdCandidates.size()
+                    + " candidates above threshold as step winner.");
+            currentStepStatistic.setBucketSize(aboveThresholdCandidates.size());
         } else if (evaluationType == EvaluationType.BEST_CANDIDATE) {
             // Get best candidate
             stepWinner = neighbourhoodEvaluator.getBestSolutionFromNeighbourhood(candidates);
@@ -265,7 +281,9 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
 
             stepWinner = new HashMap<>();
             stepWinner.put(averageScore, randomCandidate);
+
             logger.info("Picked candidate " + index + " of " + topCandidates.size() + " top candidates as step winner.");
+            currentStepStatistic.setBucketSize(topCandidates.size());
         }
 
         Optional<Map.Entry<Score, Solution_>> entry = stepWinner.entrySet().stream().findFirst();
@@ -314,5 +332,9 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
 
     public void setTopThreshold(double topThreshold) {
         this.topThreshold = topThreshold;
+    }
+
+    public void setLocalSearchStatistics(LocalSearchStatistics localSearchStatistics) {
+        this.localSearchStatistics = localSearchStatistics;
     }
 }

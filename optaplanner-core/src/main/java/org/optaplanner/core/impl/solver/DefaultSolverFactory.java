@@ -40,6 +40,7 @@ import org.optaplanner.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import org.optaplanner.core.impl.heuristic.HeuristicConfigPolicy;
 import org.optaplanner.core.impl.localsearch.AssignmentProblemType;
 import org.optaplanner.core.impl.localsearch.DefaultLocalSearchPhaseFactory;
+import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.LocalSearchStatistics;
 import org.optaplanner.core.impl.phase.Phase;
 import org.optaplanner.core.impl.phase.PhaseFactory;
 import org.optaplanner.core.impl.score.director.InnerScoreDirectorFactory;
@@ -69,9 +70,14 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
     private final SolverConfig solverConfig;
 
     private AssignmentProblemType assignmentProblemType;
+    private final LocalSearchStatistics localSearchStatistics;
 
     public void setAssignmentProblemType(AssignmentProblemType assignmentProblemType) {
         this.assignmentProblemType = assignmentProblemType;
+    }
+
+    public LocalSearchStatistics getLocalSearchStatistics() {
+        return localSearchStatistics;
     }
 
     public DefaultSolverFactory(SolverConfig solverConfig) {
@@ -79,6 +85,7 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
             throw new IllegalStateException("The solverConfig (" + solverConfig + ") cannot be null.");
         }
         this.solverConfig = solverConfig;
+        this.localSearchStatistics = new LocalSearchStatistics();
     }
 
     public InnerScoreDirectorFactory<Solution_, ?> getScoreDirectorFactory() {
@@ -209,6 +216,7 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
             PhaseFactory<Solution_> phaseFactory = PhaseFactory.create(phaseConfig);
             if (phaseFactory instanceof DefaultLocalSearchPhaseFactory) {
                 ((DefaultLocalSearchPhaseFactory) phaseFactory).setAssignmentProblemType(assignmentProblemType);
+                ((DefaultLocalSearchPhaseFactory) phaseFactory).setLocalSearchStatistics(localSearchStatistics);
             }
             Phase<Solution_> phase =
                     phaseFactory.buildPhase(phaseIndex, configPolicy, bestSolutionRecaller, termination);

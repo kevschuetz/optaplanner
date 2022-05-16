@@ -35,6 +35,7 @@ public class LocalSearchForagerFactory<Solution_> {
     private final LocalSearchForagerConfig foragerConfig;
     private NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator;
     private ScoreDefinition scoreDefinition;
+    private LocalSearchStatistics localSearchStatistics;
 
     public LocalSearchForagerFactory(LocalSearchForagerConfig foragerConfig) {
         this.foragerConfig = foragerConfig;
@@ -97,7 +98,7 @@ public class LocalSearchForagerFactory<Solution_> {
         var topBucketSize = Objects.requireNonNullElse(foragerConfig.getTopBucketRelativeSize(), 0.1);
         forager.setTopThreshold(topBucketSize);
         forager.setEvaluationThreshold(aboveAbsoluteThreshold);
-
+        forager.setLocalSearchStatistics(localSearchStatistics);
         return forager;
     }
 
@@ -107,5 +108,9 @@ public class LocalSearchForagerFactory<Solution_> {
 
     public void setScoreDefinition(ScoreDefinition scoreDefinition) {
         this.scoreDefinition = scoreDefinition;
+    }
+
+    public void setLocalSearchStatistics(LocalSearchStatistics localSearchStatistics) {
+        this.localSearchStatistics = localSearchStatistics;
     }
 }

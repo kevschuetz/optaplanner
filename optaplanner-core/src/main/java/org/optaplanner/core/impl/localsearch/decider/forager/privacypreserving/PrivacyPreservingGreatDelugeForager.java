@@ -101,6 +101,8 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
             initializedStartingLevel = true;
             return true;
         }
+        currentStepStatistic.setThresholdScore(currentWaterLevel);
+
         Score moveScore = stepWinner.getScore();
         if (moveScore.compareTo(currentWaterLevel) >= 0) {
             logger.info("Found new winner with score " + moveScore + "(waterlevel was " + currentWaterLevel + ")");

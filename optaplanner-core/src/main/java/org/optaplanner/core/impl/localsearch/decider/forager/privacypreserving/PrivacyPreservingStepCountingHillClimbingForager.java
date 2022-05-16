@@ -53,8 +53,12 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
      */
     @Override
     protected boolean isAccepted(LocalSearchMoveScope<Solution_> winner) {
-        if (iterations == 1)
+        if (iterations == 1) {
+            thresholdScore = winner.getScore();
             return true;
+        }
+
+        currentStepStatistic.setThresholdScore(thresholdScore);
 
         var score = winner.getScore();
         // Pick move if score gets improved or thresholdScore does not get violated

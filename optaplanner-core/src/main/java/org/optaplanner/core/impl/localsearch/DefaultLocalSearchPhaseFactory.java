@@ -43,6 +43,7 @@ import org.optaplanner.core.impl.localsearch.decider.acceptor.Acceptor;
 import org.optaplanner.core.impl.localsearch.decider.acceptor.AcceptorFactory;
 import org.optaplanner.core.impl.localsearch.decider.forager.LocalSearchForager;
 import org.optaplanner.core.impl.localsearch.decider.forager.LocalSearchForagerFactory;
+import org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.LocalSearchStatistics;
 import org.optaplanner.core.impl.phase.AbstractPhaseFactory;
 import org.optaplanner.core.impl.solver.recaller.BestSolutionRecaller;
 import org.optaplanner.core.impl.solver.termination.Termination;
@@ -52,6 +53,11 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
         extends AbstractPhaseFactory<Solution_, LocalSearchPhaseConfig> {
 
     public AssignmentProblemType assignmentProblemType;
+    private LocalSearchStatistics localSearchStatistics;
+
+    public void setLocalSearchStatistics(LocalSearchStatistics localSearchStatistics) {
+        this.localSearchStatistics = localSearchStatistics;
+    }
 
     public void setAssignmentProblemType(AssignmentProblemType assignmentProblemType) {
         this.assignmentProblemType = assignmentProblemType;
@@ -202,6 +208,7 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
         }
         var factory = LocalSearchForagerFactory.<Solution_> create(foragerConfig_);
         factory.setScoreDefinition(configPolicy.getScoreDefinition());
+        factory.setLocalSearchStatistics(localSearchStatistics);
         return factory.buildForager();
     }
 
