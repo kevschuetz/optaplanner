@@ -7,14 +7,21 @@ import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 import org.optaplanner.core.impl.score.ScoreUtils;
 
+/**
+ * Forager implementing the Simulated Annealing algorithm.
+ * 
+ * @param <Solution_> generic solutions
+ */
 public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
 
-    protected Score startingTemperature;
+    /**
+     * The starting temperature
+     */
+    private final Score startingTemperature;
 
-    protected int levelsLength = -1;
-    protected double[] startingTemperatureLevels;
-    protected double[] temperatureLevels;
-    protected double temperatureMinimum = 1.0E-100;
+    private int levelsLength = -1;
+    private double[] startingTemperatureLevels;
+    private double[] temperatureLevels;
 
     public PrivacyPreservingSimulatedAnnealingForager(int acceptedCountLimit_, Score startingTemperature,
             NeighbourhoodEvaluator<Solution_> evaluator, EvaluationType evaluationType) {
@@ -22,8 +29,17 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
         this.startingTemperature = startingTemperature;
     }
 
+    /**
+     * Implements the SA algorithm.
+     * 
+     * @param stepWinner the winner of the step
+     * @return boolean indicating if stepWinner can be accepted
+     */
     @Override
     protected boolean isAccepted(LocalSearchMoveScope<Solution_> stepWinner) {
+        if (iterations == 1)
+            return true;
+
         LocalSearchPhaseScope<Solution_> phaseScope = stepWinner.getStepScope().getPhaseScope();
         Score lastStepScore = phaseScope.getLastCompletedStepScope().getScore();
         Score moveScore = stepWinner.getScore();
@@ -67,6 +83,11 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
     // Worker methods
     // ************************************************************************
 
+    /**
+     * Initializes the fields.
+     * 
+     * @param phaseScope the phase scope
+     */
     @Override
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
@@ -90,6 +111,11 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
         levelsLength = -1;
     }
 
+    /**
+     * Updates the starting temperature
+     * 
+     * @param stepScope the step scope
+     */
     @Override
     public void stepStarted(LocalSearchStepScope<Solution_> stepScope) {
         super.stepStarted(stepScope);
@@ -101,6 +127,7 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
         // Adjust/decrease all temperature levels (hard/soft) according to time passed
         for (int i = 0; i < levelsLength; i++) {
             temperatureLevels[i] = startingTemperatureLevels[i] * reverseTimeGradient;
+            double temperatureMinimum = 1.0E-100;
             if (temperatureLevels[i] < temperatureMinimum) {
                 temperatureLevels[i] = temperatureMinimum;
             }

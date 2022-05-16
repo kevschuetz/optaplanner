@@ -1,0 +1,14 @@
+@startuml
+interface org.optaplanner.core.impl.localsearch.decider.acceptor.privacypreserving.ConstraintValidator {
++ boolean satisfiesConstraints(Collection<?>)
+}
+class org.optaplanner.core.impl.localsearch.decider.acceptor.privacypreserving.ConstraintAwareAcceptor {
+- ConstraintValidator<Solution_> constraintValidator
+- AssignmentProblemType assignmentProblemType
++ boolean isAccepted(LocalSearchMoveScope<Solution_>)
+}
+
+
+org.optaplanner.core.impl.localsearch.decider.acceptor.Acceptor <|.. org.optaplanner.core.impl.localsearch.decider.acceptor.privacypreserving.ConstraintAwareAcceptor
+org.optaplanner.core.impl.localsearch.event.LocalSearchPhaseLifecycleListenerAdapter <|-- org.optaplanner.core.impl.localsearch.decider.acceptor.privacypreserving.ConstraintAwareAcceptor
+@enduml

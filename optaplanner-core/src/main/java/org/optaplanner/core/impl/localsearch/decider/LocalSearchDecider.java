@@ -138,7 +138,15 @@ public class LocalSearchDecider<Solution_> {
         pickMove(stepScope);
     }
 
+    /**
+     * Executes a move suggested by the MoveSelector, triggers Acceptor and Forager.
+     * Score only calculated in non-privacy-preserving mode
+     * 
+     * @param moveScope The move
+     * @param <Score_> The score of the move
+     */
     protected <Score_ extends Score<Score_>> void doMove(LocalSearchMoveScope<Solution_> moveScope) {
+        // Calculate score if phaseType not set to privacy-preserving
         if (!privacyPreserving) {
             InnerScoreDirector<Solution_, Score_> scoreDirector = moveScope.getScoreDirector();
             scoreDirector.doAndProcessMove(moveScope.getMove(), assertMoveScoreFromScratch, score -> {
@@ -151,7 +159,7 @@ public class LocalSearchDecider<Solution_> {
                 scoreDirector.assertExpectedUndoMoveScore(moveScope.getMove(),
                         (Score_) moveScope.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore());
             }
-        } else {
+        } else { // No score calculation for privacy-preserving mode
             boolean accepted = acceptor.isAccepted(moveScope);
             moveScope.setAccepted(accepted);
             forager.addMove(moveScope);

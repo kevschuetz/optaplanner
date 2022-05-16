@@ -4,52 +4,95 @@ import java.util.*;
 
 import org.optaplanner.core.api.score.Score;
 import org.optaplanner.core.config.localsearch.decider.forager.EvaluationType;
-import org.optaplanner.core.impl.localsearch.decider.forager.AbstractLocalSearchForager;
+import org.optaplanner.core.impl.localsearch.decider.forager.LocalSearchForager;
+import org.optaplanner.core.impl.localsearch.event.LocalSearchPhaseLifecycleListenerAdapter;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 import org.optaplanner.core.impl.score.director.InnerScoreDirector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A privacy preserving forager that uses the privacy-engine to evaluate the candidates of the search steps.
- * This class can be extended to implement different selection mechanisms, by implementing the pickMoveUsingPrivacyEngineMap()
- * method
+ * This class can be extended to implement different selection mechanisms, by implementing
+ * {@link #isAccepted(LocalSearchMoveScope)}.
  * 
- * @param <Solution_>
+ * @param <Solution_> generic solution
  */
-public abstract class AbstractPrivacyPreservingForager<Solution_> extends AbstractLocalSearchForager<Solution_> {
-    protected Properties configuration;
+public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalSearchPhaseLifecycleListenerAdapter<Solution_>
+        implements LocalSearchForager<Solution_> {
+    protected final transient Logger logger = LoggerFactory.getLogger(getClass());
     /**
-     * Specifies how many moves are gathered before a winner is picked
+     * Specifies how many moves are gathered before a winner is picked.
      */
-    protected int acceptedCountLimit;
+    private final int acceptedCountLimit;
 
-    protected long selectedMoveCount;
-    protected long acceptedMoveCount;
+    /**
+     * Used to count all moves suggested to the forager in one step.
+     */
+    private long selectedMoveCount;
+    /**
+     * Used to count all moves accepted by the forager in one step.
+     */
+    private long acceptedMoveCount;
 
-    // Privacy Engine
+    /**
+     * Used to evaluate the neighbourhood in each step.
+     */
     private final NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator;
 
+    /**
+     * Used to execute suggested moves to retain a solution that can be evaluated by the {@link NeighbourhoodEvaluator}
+     */
     private InnerScoreDirector<Solution_, ?> scoreDirector;
 
-    // Current winner of the search phase
-    protected LocalSearchMoveScope<Solution_> lastPickedMoveScope;
+    /**
+     * Helper field storing the move-scope that has been picked latest.
+     */
+    private LocalSearchMoveScope<Solution_> lastPickedMoveScope;
 
-    // Collections storing candidates
-    protected List<LocalSearchMoveScope<Solution_>> candidateMoveScopes;
+    /**
+     * Stores the suggested moves in each step.
+     */
+    private List<LocalSearchMoveScope<Solution_>> candidateMoveScopes;
+
+    /**
+     * Maps the solution(required by evaluator) to corresponding moves(required internally).
+     */
     protected Map<Solution_, LocalSearchMoveScope<Solution_>> solutionMoveScopeMap;
 
-    // Statistics
+    /**
+     * Helper field counting overall iterations.
+     */
     protected int iterations;
 
-    //Evaluation method flag
-    protected final boolean isEvaluationAboveThreshold;
-    protected final double evaluationThreshold;
+    /**
+     * Sets the {@link EvaluationType}
+     */
+    private final EvaluationType evaluationType;
+
+    /**
+     * Threshold for the {@link EvaluationType#ABOVE_THRESHOLD}
+     */
+    private double evaluationThreshold;
+
+    /**
+     * Threshold for the {@link EvaluationType#TOP}
+     */
+    private double topThreshold;
 
     protected AbstractPrivacyPreservingForager() {
         this(50, null, EvaluationType.BEST_CANDIDATE);
     }
 
+    /**
+     * Constructor
+     * 
+     * @param acceptedCountLimit size of neighbourhood
+     * @param neighbourhoodEvaluator evaluator of neighbourhood
+     * @param evaluationType type of evaluation
+     */
     protected AbstractPrivacyPreservingForager(int acceptedCountLimit,
             NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator, EvaluationType evaluationType) {
         logger.info("Initialized " + this.getClass());
@@ -59,8 +102,9 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         this.solutionMoveScopeMap = new HashMap<>();
         this.lastPickedMoveScope = null;
         this.neighbourhoodEvaluator = neighbourhoodEvaluator;
-        this.isEvaluationAboveThreshold = false; //TODO : configure
-        this.evaluationThreshold = 0.9; //TODO : configure
+        this.evaluationType = evaluationType;
+        this.evaluationThreshold = 0.98; //TODO : configure
+        this.topThreshold = 0.02;
     }
 
     // ************************************************************************
@@ -74,7 +118,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     }
 
     /**
-     * Resets the move counts and notifies the finalistPodium
+     * Resets the move counts and clears collection before each step.
      * 
      * @param stepScope the step scope
      */
@@ -90,7 +134,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     }
 
     /**
-     * Required to check compliance with a never ending move selector, otherwise steps would never end
+     * Required to check compliance with a never ending move selector, otherwise steps would never end.
      * 
      * @return boolean indicating if acceptedCountLimit has been set
      */
@@ -100,6 +144,11 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         return acceptedCountLimit < Integer.MAX_VALUE;
     }
 
+    /**
+     * Adds the move if accepted by the {@link org.optaplanner.core.impl.localsearch.decider.acceptor.Acceptor}.
+     * 
+     * @param moveScope never null
+     */
     @Override
     public void addMove(LocalSearchMoveScope<Solution_> moveScope) {
         selectedMoveCount++;
@@ -110,7 +159,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     }
 
     /**
-     * Checks if enough moves have been gathered according to the limit of accepted moves
+     * Checks if enough moves have been gathered according to the limit of accepted moves.
      * 
      * @return boolean indicating if limit has been reached
      */
@@ -120,7 +169,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     }
 
     /**
-     * Picks a move from all the candidates for the next step
+     * Picks a move from all the candidates for the next step.
      * 
      * @param stepScope the scope of the step
      * @return the winning move
@@ -160,58 +209,66 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
     // ************************************************************************
 
     /**
-     * Picks the move according to the mapping of the maximum score of the current candidates and the sorted list of the
-     * candidates.
-     * This method has to be implemented by foragers to facilitate a certain search algorithm mechanism.
-     * Every implementation has to check if the currentWinner is null to avoid not setting a winner if the initial solution is
-     * already the best solution.
+     * Abstract method that is used to determine whether the winning move of a step,
+     * can be accepted as basis for the next step.
      * 
      * @return the winning move scope or null
      */
     protected abstract boolean isAccepted(LocalSearchMoveScope<Solution_> stepWinner);
 
     /**
-     * Gets the mapping from the max score of the candidates to a sorted list from the privacy engine
-     * 
-     * @return the map
+     * Initializes required collections, evaluates the neighbourhood and returns the winning move
      */
     private LocalSearchMoveScope<Solution_> getStepWinner() {
         mapCandidateSolutionsToMoveScopes();
         return evaluateStepCandidates();
     }
 
+    /**
+     * Evaluates the neighbourhood and returns the winning move.
+     * 
+     * @return the winning move
+     */
     private LocalSearchMoveScope<Solution_> evaluateStepCandidates() {
         List<Solution_> candidates = new ArrayList<>(solutionMoveScopeMap.keySet());
         Map<Score, Solution_> stepWinner;
-        if(isEvaluationAboveThreshold){
-            var winningCandidatesMap = neighbourhoodEvaluator.getCandidatesAboveThreshold(candidates, evaluationThreshold);
-            var winningCandidatesList = winningCandidatesMap.entrySet().stream().findFirst().get().getValue();
-            var highScore = winningCandidatesMap.entrySet().stream().findFirst().get().getKey();
+        // Evaluate neighbourhood according to type of evaluation.
+        if (evaluationType == EvaluationType.ABOVE_THRESHOLD) {
+            // Trigger evaluation
+            Map<Score, List<Solution_>> aboveThresholdMap =
+                    neighbourhoodEvaluator.getCandidatesAboveThreshold(candidates, evaluationThreshold);
+            List<Solution_> aboveThresholdCandidates = aboveThresholdMap.entrySet().stream().findFirst().get().getValue();
+            Score averageScore = aboveThresholdMap.entrySet().stream().findFirst().get().getKey();
 
+            // Chose random candidate above threshold
             Random random = new Random();
-            var randomCandidate = winningCandidatesList.get(random.nextInt(winningCandidatesList.size()));
-            var delta = 1 - evaluationThreshold;
-            var estimatedDelta = delta / 2;
-            var highScoreLevelNumbers = highScore.toLevelNumbers();
-            var isNegative = false;
-            for (Number highScoreLevelNumber : highScoreLevelNumbers) {
-                if (highScoreLevelNumber.doubleValue() < 0) isNegative = true;
-            }
-            double factor;
-            if(isNegative){
-                factor = 1 + estimatedDelta;
-            }else{
-                factor = 1 - estimatedDelta;
-            }
-            // TODO: test with test case that has negative highscore
-            var estimatedScore = highScore.multiply(factor);
+            int index = random.nextInt(aboveThresholdCandidates.size());
+            Solution_ randomCandidate = aboveThresholdCandidates.get(index);
+            logger.info("Picked candidate " + index + " of " + aboveThresholdCandidates.size()
+                    + " candidates above threshold as step winner.");
+            stepWinner = new HashMap<>();
+            stepWinner.put(averageScore, randomCandidate);
+        } else if (evaluationType == EvaluationType.BEST_CANDIDATE) {
+            // Get best candidate
+            stepWinner = neighbourhoodEvaluator.getBestSolutionFromNeighbourhood(candidates);
+        } else { // TOP
+            // Trigger evaluation
+            Map<Score, List<Solution_>> topCandidatesMap =
+                    neighbourhoodEvaluator.getTopCandidatesAndAverageScore(candidates, topThreshold);
+            List<Solution_> topCandidates = topCandidatesMap.entrySet().stream().findFirst().get().getValue();
+            Score averageScore = topCandidatesMap.entrySet().stream().findFirst().get().getKey();
+
+            // Get random candidate of top-bucket
+            Random random = new Random();
+            int index = random.nextInt(topCandidates.size());
+            Solution_ randomCandidate = topCandidates.get(index);
 
             stepWinner = new HashMap<>();
-            stepWinner.put(estimatedScore, randomCandidate);
-        }else{
-            stepWinner = neighbourhoodEvaluator.getBestSolutionFromNeighbourhood(candidates);
+            stepWinner.put(averageScore, randomCandidate);
+            logger.info("Picked candidate " + index + " of " + topCandidates.size() + " top candidates as step winner.");
         }
-        var entry = stepWinner.entrySet().stream().findFirst();
+
+        Optional<Map.Entry<Score, Solution_>> entry = stepWinner.entrySet().stream().findFirst();
 
         if (!entry.isPresent())
             return null;
@@ -219,38 +276,11 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
         Solution_ solution = entry.get().getValue();
         Score score = entry.get().getKey();
 
-        var moveScope = this.solutionMoveScopeMap.get(solution);
+        // Get move scope corresponding to winning solution
+        LocalSearchMoveScope<Solution_> moveScope = this.solutionMoveScopeMap.get(solution);
         moveScope.setScore(score);
 
         return moveScope;
-    }
-
-    private Map<Score, List<LocalSearchMoveScope<Solution_>>>
-            mapOrderedSolutionsToMoveScopes(Map<Score, List<Solution_>> map) {
-        var optEntry = map.entrySet().stream().findFirst();
-
-        // Initialize Result
-        HashMap<Score, List<LocalSearchMoveScope<Solution_>>> result = new HashMap<>();
-        List<LocalSearchMoveScope<Solution_>> sortedMoveScopeList = new ArrayList<>();
-        Score maxScore = null;
-
-        // Get sorted list and max score from privacy engine
-        List<Solution_> sortedFlightPrioritizationList = new ArrayList<>();
-
-        // Check if entry is present and set max-score and assign list
-        if (optEntry.isPresent()) {
-            sortedFlightPrioritizationList = optEntry.get().getValue();
-            maxScore = optEntry.get().getKey();
-        }
-
-        // Iterate over sorted flight prioritizations and add corresponding MoveScope to result
-        for (Solution_ flightPrio : sortedFlightPrioritizationList) {
-            sortedMoveScopeList.add(this.solutionMoveScopeMap.get(flightPrio));
-        }
-
-        result.put(maxScore, sortedMoveScopeList);
-
-        return result;
     }
 
     /**
@@ -268,5 +298,21 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends Abstra
             // Undo the move
             undoMove.doMove(scoreDirector);
         }
+    }
+
+    public double getEvaluationThreshold() {
+        return evaluationThreshold;
+    }
+
+    public void setEvaluationThreshold(double evaluationThreshold) {
+        this.evaluationThreshold = evaluationThreshold;
+    }
+
+    public double getTopThreshold() {
+        return topThreshold;
+    }
+
+    public void setTopThreshold(double topThreshold) {
+        this.topThreshold = topThreshold;
     }
 }

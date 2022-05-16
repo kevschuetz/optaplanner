@@ -6,16 +6,45 @@ import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchStepScope;
 
+/**
+ * Forager implementing the GreatDeluge logarithm.
+ * 
+ * @param <Solution_>
+ */
 public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
+    /**
+     * The configured initial threshold.
+     */
     private Score initialWaterLevel;
+
+    /**
+     * The increment for each step.
+     */
     private Score waterLevelIncrementScore;
+
+    /**
+     * The ratio of the initialWaterLevel used as increment each step.
+     */
     private Double waterLevelIncrementRatio;
 
+    /**
+     * The starting threshold.
+     */
     private Score startingWaterLevel = null;
 
+    /**
+     * The current threshold.
+     */
     private Score currentWaterLevel = null;
+
+    /**
+     * The current ratio used to determine the next increase of the threshold.
+     */
     private Double currentWaterLevelRatio = null;
 
+    /**
+     * Flag indicating if starting level has been initialized.
+     */
     boolean initializedStartingLevel = false;
 
     public PrivacyPreservingGreatDelugeForager(int acceptedCountLimit_,
@@ -47,6 +76,14 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
         this.waterLevelIncrementRatio = waterLevelIncrementRatio;
     }
 
+    /**
+     * Implements the GreatDeluge logarithm.
+     * The winner of the step is accepted if its score surpasses the current threshold/waterlevel,
+     * or if its score surpasses the score of the last step.
+     * 
+     * @param stepWinner the winner of the step
+     * @return boolean indicating if step winner is accepted.
+     */
     @Override
     protected boolean isAccepted(LocalSearchMoveScope<Solution_> stepWinner) {
         if (!initializedStartingLevel) {
@@ -60,7 +97,7 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
                     isNegative = true;
             }
             if (isNegative)
-                waterLevelIncrementScore.multiply(-1);
+                waterLevelIncrementScore = waterLevelIncrementScore.negate();
             initializedStartingLevel = true;
             return true;
         }
@@ -78,6 +115,11 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
         return false;
     }
 
+    /**
+     * Initializes the fields
+     * 
+     * @param phaseScope the phase scope
+     */
     @Override
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
@@ -102,6 +144,11 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
         currentWaterLevel = null;
     }
 
+    /**
+     * Updates the current threshold.
+     * 
+     * @param stepScope the step scope
+     */
     @Override
     public void stepEnded(LocalSearchStepScope<Solution_> stepScope) {
         super.stepEnded(stepScope);

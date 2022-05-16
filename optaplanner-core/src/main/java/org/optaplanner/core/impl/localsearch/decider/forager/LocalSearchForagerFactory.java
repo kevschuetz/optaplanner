@@ -68,10 +68,11 @@ public class LocalSearchForagerFactory<Solution_> {
                     "Could not load NeighbourhoodEvaluator-class although forager type has been set. Nested exception is:"
                             + e.getMessage());
         }
+        AbstractPrivacyPreservingForager forager = null;
         if (foragerConfig.getForagerType() == ForagerType.PP_HILL_CLIMBING) {
-            return new PrivacyPreservingHillClimbingForager<>(acceptedCountLimit_, neighbourhoodEvaluator, evaluationType);
+            forager = new PrivacyPreservingHillClimbingForager<>(acceptedCountLimit_, neighbourhoodEvaluator, evaluationType);
         } else if (foragerConfig.getForagerType() == ForagerType.PP_STEP_COUNTING_HILL_CLIMBING) {
-            return new PrivacyPreservingStepCountingHillClimbingForager<>(acceptedCountLimit_,
+            forager = new PrivacyPreservingStepCountingHillClimbingForager<>(acceptedCountLimit_,
                     Objects.requireNonNullElse(foragerConfig.getStepCountingHillClimbingSize(), 20),
                     Objects.requireNonNullElse(foragerConfig.getStepCountingHillClimbingType(),
                             StepCountingHillClimbingType.STEP),
@@ -81,20 +82,23 @@ public class LocalSearchForagerFactory<Solution_> {
                     foragerConfig.getSimulatedAnnealingStartingTemperature() != null && scoreDefinition != null
                             ? scoreDefinition.parseScore(foragerConfig.getSimulatedAnnealingStartingTemperature())
                             : HardSoftScore.of(0, 500);
-            return new PrivacyPreservingSimulatedAnnealingForager<>(acceptedCountLimit_, startingTemperature,
+            forager = new PrivacyPreservingSimulatedAnnealingForager<>(acceptedCountLimit_, startingTemperature,
                     neighbourhoodEvaluator, evaluationType);
         } else if (foragerConfig.getForagerType() == ForagerType.PP_GREAT_DELUGE) {
-            var forager =
-                    new PrivacyPreservingGreatDelugeForager<>(acceptedCountLimit_, neighbourhoodEvaluator, evaluationType);
-            forager.setWaterLevelIncrementRatio(
+            forager = new PrivacyPreservingGreatDelugeForager<>(acceptedCountLimit_, neighbourhoodEvaluator, evaluationType);
+            ((PrivacyPreservingGreatDelugeForager) forager).setWaterLevelIncrementRatio(
                     Objects.requireNonNullElse(foragerConfig.getGreatDelugeWaterLevelIncrementRatio(), 0.005));
-            return forager;
-        } else if (foragerConfig.getForagerType() == ForagerType.PP_TABU_SEARCH) {
-            var forager =
-                    new PrivacyPreservingTabuSearchForager<>(acceptedCountLimit_, neighbourhoodEvaluator, 1000, evaluationType);
-            return forager; //TODO: make size configurable
+        } else {
+            Integer tabuListSize = Objects.requireNonNullElse(foragerConfig.getTabuListSize(), 1000);
+            forager = new PrivacyPreservingTabuSearchForager<>(acceptedCountLimit_, neighbourhoodEvaluator, tabuListSize,
+                    evaluationType);
         }
-        return null;
+        var aboveAbsoluteThreshold = Objects.requireNonNullElse(foragerConfig.getEvaluationThreshold(), 0.0);
+        var topBucketSize = Objects.requireNonNullElse(foragerConfig.getTopBucketRelativeSize(), 0.1);
+        forager.setTopThreshold(topBucketSize);
+        forager.setEvaluationThreshold(aboveAbsoluteThreshold);
+
+        return forager;
     }
 
     public ScoreDefinition getScoreDefinition() {

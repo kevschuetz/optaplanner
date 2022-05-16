@@ -86,18 +86,24 @@ public class AcceptorFactory<Solution_> {
         }
     }
 
+    /**
+     * Builds the {@link ConstraintAwareAcceptor}
+     * 
+     * @return the {@link Optional} possibly containing the Acceptor.
+     */
     private Optional<ConstraintAwareAcceptor<Solution_>> buildConstraintAwareAcceptor() {
         if (acceptorConfig.getAcceptorTypeList() != null
                 && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.CONSTRAINT_AWARE)) {
             try {
-                constraintValidator = (ConstraintValidator<Solution_>) Class
-                        .forName(acceptorConfig.getConstraintValidatorClass()).getDeclaredConstructor().newInstance();
+                // Load constraint validator class
+                constraintValidator =
+                        (ConstraintValidator<Solution_>) Class
+                                .forName(acceptorConfig.getConstraintValidatorClass()).getDeclaredConstructor().newInstance();
             } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException
                     | InstantiationException e) {
-                throw new IllegalArgumentException(
-                        "Could not load ConstraintValidator-class although the acceptor type has been set to constraint aware."
-                                + e.getMessage());
+                constraintValidator = suggestedSolution -> true;
             }
+            // Build the acceptor
             ConstraintAwareAcceptor<Solution_> acceptor =
                     new ConstraintAwareAcceptor<>(constraintValidator, Objects
                             .requireNonNullElse(acceptorConfig.getAssignmentProblemType(), AssignmentProblemType.UNBALANCED));

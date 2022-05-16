@@ -3,8 +3,20 @@ package org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving;
 import org.optaplanner.core.config.localsearch.decider.forager.EvaluationType;
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 
+/**
+ * Forager implementing the Hill Climbing algorithm
+ * 
+ * @param <Solution_> generic solution
+ */
 public class PrivacyPreservingHillClimbingForager<Solution_> extends AbstractPrivacyPreservingForager<Solution_> {
 
+    /**
+     * Constructor
+     * 
+     * @param acceptedCountLimit_ neighbourhood size
+     * @param evaluator the NeighbourhoodEvaluator
+     * @param evaluationType the type of the evaluation
+     */
     public PrivacyPreservingHillClimbingForager(int acceptedCountLimit_, NeighbourhoodEvaluator<Solution_> evaluator,
             EvaluationType evaluationType) {
         super(acceptedCountLimit_, evaluator, evaluationType);
@@ -18,6 +30,9 @@ public class PrivacyPreservingHillClimbingForager<Solution_> extends AbstractPri
      */
     @Override
     protected boolean isAccepted(LocalSearchMoveScope<Solution_> winner) {
+        if (iterations == 1)
+            return true;
+
         var score = winner.getScore();
 
         // Pick move only if score gets improved

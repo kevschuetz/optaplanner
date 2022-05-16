@@ -36,7 +36,10 @@ import org.optaplanner.core.config.util.ConfigUtils;
         "stepCountingHillClimbingSize",
         "stepCountingHillClimbingType",
         "greatDelugeWaterLevelIncrementRatio",
-        "simulatedAnnealingStartingTemperature"
+        "simulatedAnnealingStartingTemperature",
+        "evaluationThreshold",
+        "tabuListSize",
+        "topBucketRelativeSize"
 })
 public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerConfig> {
 
@@ -46,6 +49,9 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
     protected Boolean breakTieRandomly = null;
     protected Integer stepCountingHillClimbingSize = null;
     protected StepCountingHillClimbingType stepCountingHillClimbingType = null;
+    protected Double evaluationThreshold = null;
+    protected Double topBucketRelativeSize = null;
+    protected Integer tabuListSize = null;
 
     protected String simulatedAnnealingStartingTemperature = null;
     protected Double greatDelugeWaterLevelIncrementRatio = null;
@@ -68,6 +74,30 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
 
     public void setNeighbourhoodEvaluatorClass(String neighbourhoodEvaluatorClass) {
         this.neighbourhoodEvaluatorClass = neighbourhoodEvaluatorClass;
+    }
+
+    public Double getTopBucketRelativeSize() {
+        return topBucketRelativeSize;
+    }
+
+    public void setTopBucketRelativeSize(Double topBucketRelativeSize) {
+        this.topBucketRelativeSize = topBucketRelativeSize;
+    }
+
+    public Integer getTabuListSize() {
+        return tabuListSize;
+    }
+
+    public void setTabuListSize(Integer tabuListSize) {
+        this.tabuListSize = tabuListSize;
+    }
+
+    public Double getEvaluationThreshold() {
+        return evaluationThreshold;
+    }
+
+    public void setEvaluationThreshold(Double evaluationThreshold) {
+        this.evaluationThreshold = evaluationThreshold;
     }
 
     public EvaluationType getEvaluationType() {
@@ -145,12 +175,27 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
     public void setGreatDelugeWaterLevelIncrementRatio(Double greatDelugeWaterLevelIncrementRatio) {
         this.greatDelugeWaterLevelIncrementRatio = greatDelugeWaterLevelIncrementRatio;
     }
+
     // ************************************************************************
     // With methods
     // ************************************************************************
+    public LocalSearchForagerConfig withTopBucketRealtiveSize(Double topBucketRealtiveSize) {
+        this.topBucketRelativeSize = topBucketRealtiveSize;
+        return this;
+    }
+
+    public LocalSearchForagerConfig withTabuListSize(Integer tabuListSize) {
+        this.tabuListSize = tabuListSize;
+        return this;
+    }
 
     public LocalSearchForagerConfig withPickEarlyType(LocalSearchPickEarlyType pickEarlyType) {
         this.pickEarlyType = pickEarlyType;
+        return this;
+    }
+
+    public LocalSearchForagerConfig withEvaluationThreshold(Double evaluationThreshold) {
+        this.evaluationThreshold = evaluationThreshold;
         return this;
     }
 
@@ -225,6 +270,12 @@ public class LocalSearchForagerConfig extends AbstractConfig<LocalSearchForagerC
                 inheritedConfig.getSimulatedAnnealingStartingTemperature());
         evaluationType = ConfigUtils.inheritOverwritableProperty(evaluationType,
                 inheritedConfig.getEvaluationType());
+        evaluationThreshold = ConfigUtils.inheritOverwritableProperty(evaluationThreshold,
+                inheritedConfig.getEvaluationThreshold());
+        topBucketRelativeSize = ConfigUtils.inheritOverwritableProperty(topBucketRelativeSize,
+                inheritedConfig.getTopBucketRelativeSize());
+        tabuListSize = ConfigUtils.inheritOverwritableProperty(tabuListSize,
+                inheritedConfig.getTabuListSize());
         return this;
     }
 
