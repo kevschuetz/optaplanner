@@ -64,7 +64,7 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
         // Pick move if score gets improved or thresholdScore does not get violated
         if (score.compareTo(winner.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore()) >= 0
                 || score.compareTo(thresholdScore) >= 0) {
-            logger.info("Found new winner with score: " + score);
+            logger.debug("Found new winner with score: " + score);
             return true;
         }
         return false;

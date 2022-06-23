@@ -105,13 +105,13 @@ public class PrivacyPreservingGreatDelugeForager<Solution_> extends AbstractPriv
 
         Score moveScore = stepWinner.getScore();
         if (moveScore.compareTo(currentWaterLevel) >= 0) {
-            logger.info("Found new winner with score " + moveScore + "(waterlevel was " + currentWaterLevel + ")");
+            logger.debug("Found new winner with score " + moveScore + "(waterlevel was " + currentWaterLevel + ")");
             return true;
         }
         Score lastStepScore = stepWinner.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore();
         if (moveScore.compareTo(lastStepScore) > 0) {
             // Aspiration
-            logger.info("Accepted aspirating step.");
+            logger.debug("Accepted aspirating step.");
             return true;
         }
         return false;

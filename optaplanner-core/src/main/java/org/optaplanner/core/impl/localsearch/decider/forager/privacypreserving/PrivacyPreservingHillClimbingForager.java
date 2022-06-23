@@ -37,7 +37,7 @@ public class PrivacyPreservingHillClimbingForager<Solution_> extends AbstractPri
 
         // Pick move only if score gets improved
         if (score.compareTo(winner.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore()) >= 0) {
-            logger.info("Found new winner with score: " + score);
+            logger.debug("Found new winner with score: " + score);
             return true;
         }
         return false;

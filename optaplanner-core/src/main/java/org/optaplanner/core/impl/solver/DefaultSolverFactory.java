@@ -71,6 +71,7 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
 
     private AssignmentProblemType assignmentProblemType;
     private final LocalSearchStatistics localSearchStatistics;
+    private Double terminationFitness = Double.MAX_VALUE;
 
     public void setAssignmentProblemType(AssignmentProblemType assignmentProblemType) {
         this.assignmentProblemType = assignmentProblemType;
@@ -78,6 +79,10 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
 
     public LocalSearchStatistics getLocalSearchStatistics() {
         return localSearchStatistics;
+    }
+
+    public void setTerminationFitness(Double terminationFitness) {
+        this.terminationFitness = terminationFitness;
     }
 
     public DefaultSolverFactory(SolverConfig solverConfig) {
@@ -217,7 +222,9 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
             if (phaseFactory instanceof DefaultLocalSearchPhaseFactory) {
                 ((DefaultLocalSearchPhaseFactory) phaseFactory).setAssignmentProblemType(assignmentProblemType);
                 ((DefaultLocalSearchPhaseFactory) phaseFactory).setLocalSearchStatistics(localSearchStatistics);
+                ((DefaultLocalSearchPhaseFactory) phaseFactory).setTerminationFitness(terminationFitness);
             }
+
             Phase<Solution_> phase =
                     phaseFactory.buildPhase(phaseIndex, configPolicy, bestSolutionRecaller, termination);
             phaseList.add(phase);

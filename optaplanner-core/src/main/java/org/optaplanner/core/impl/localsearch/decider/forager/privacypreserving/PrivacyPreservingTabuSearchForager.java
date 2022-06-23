@@ -57,18 +57,18 @@ public class PrivacyPreservingTabuSearchForager<Solution_> extends AbstractPriva
 
         // Move is not tabu
         if (!tabuList.contains(winningSolution)) {
-            logger.info("Accepted winner because it is not tabu.");
+            logger.debug("Accepted winner because it is not tabu.");
             return true;
         }
 
         // Move is tabu but aspiration
         if (stepWinner.getScore()
                 .compareTo(stepWinner.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore()) >= 0) {
-            logger.info("Accepted winner because of aspiration.");
+            logger.debug("Accepted winner because of aspiration.");
             return true;
         }
 
-        logger.info("Could not accept winner.");
+        logger.debug("Could not accept winner.");
         return false;
     }
 

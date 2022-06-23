@@ -36,6 +36,7 @@ public class LocalSearchForagerFactory<Solution_> {
     private NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator;
     private ScoreDefinition scoreDefinition;
     private LocalSearchStatistics localSearchStatistics;
+    private Double terminationFitness = Double.MAX_VALUE;
 
     public LocalSearchForagerFactory(LocalSearchForagerConfig foragerConfig) {
         this.foragerConfig = foragerConfig;
@@ -99,6 +100,7 @@ public class LocalSearchForagerFactory<Solution_> {
         forager.setTopThreshold(topBucketSize);
         forager.setEvaluationThreshold(aboveAbsoluteThreshold);
         forager.setLocalSearchStatistics(localSearchStatistics);
+        forager.setTerminationFitness(terminationFitness);
         return forager;
     }
 
@@ -112,5 +114,13 @@ public class LocalSearchForagerFactory<Solution_> {
 
     public void setLocalSearchStatistics(LocalSearchStatistics localSearchStatistics) {
         this.localSearchStatistics = localSearchStatistics;
+    }
+
+    public Double getTerminationFitness() {
+        return terminationFitness;
+    }
+
+    public void setTerminationFitness(Double terminationFitness) {
+        this.terminationFitness = terminationFitness;
     }
 }

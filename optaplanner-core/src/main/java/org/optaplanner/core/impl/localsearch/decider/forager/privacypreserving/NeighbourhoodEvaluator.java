@@ -24,16 +24,20 @@ public interface NeighbourhoodEvaluator<Solution_> {
      * 
      * @param candidates the neighbourhood
      * @param threshold the threshold (0-1)
+     * @param terminationFitness
      * @return the {@link Solution_}s above the threshold and the AVERAGE score of the solutions.
      */
-    Map<Score, List<Solution_>> getCandidatesAboveThreshold(List<Solution_> candidates, double threshold);
+    Map<Score, List<Solution_>> getCandidatesAboveThreshold(List<Solution_> candidates, double threshold,
+            Double terminationFitness);
 
     /**
      * Returns the Top candidates of the neighbourhood and the average score of these.
      * 
      * @param candidates the neighbourhood
      * @param threshold the percentage of the neighbourhood size that shall be returned
+     * @param terminationFitness
      * @return the top {@link Solution_} and the AVERAGE score of these solutions
      */
-    Map<Score, List<Solution_>> getTopCandidatesAndAverageScore(List<Solution_> candidates, double threshold);
+    Map<Score, List<Solution_>> getTopCandidatesAndAverageScore(List<Solution_> candidates, double threshold,
+            Double terminationFitness);
 }

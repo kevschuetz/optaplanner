@@ -54,6 +54,7 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
 
     public AssignmentProblemType assignmentProblemType;
     private LocalSearchStatistics localSearchStatistics;
+    private Double terminationFitness = Double.MAX_VALUE;
 
     public void setLocalSearchStatistics(LocalSearchStatistics localSearchStatistics) {
         this.localSearchStatistics = localSearchStatistics;
@@ -61,6 +62,10 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
 
     public void setAssignmentProblemType(AssignmentProblemType assignmentProblemType) {
         this.assignmentProblemType = assignmentProblemType;
+    }
+
+    public void setTerminationFitness(Double terminationFitness) {
+        this.terminationFitness = terminationFitness;
     }
 
     public DefaultLocalSearchPhaseFactory(LocalSearchPhaseConfig phaseConfig) {
@@ -209,6 +214,7 @@ public class DefaultLocalSearchPhaseFactory<Solution_>
         var factory = LocalSearchForagerFactory.<Solution_> create(foragerConfig_);
         factory.setScoreDefinition(configPolicy.getScoreDefinition());
         factory.setLocalSearchStatistics(localSearchStatistics);
+        factory.setTerminationFitness(terminationFitness);
         return factory.buildForager();
     }
 

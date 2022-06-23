@@ -1,0 +1,28 @@
+@startuml
+class org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.LocalSearchStatistics {
+- List<StepStatistic> steps
+- Integer iterations
++ List<StepStatistic> getSteps()
++ void setSteps(List<StepStatistic>)
++ Integer getIterations()
++ void setIterations(Integer)
+}
+
+class org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.StepStatistic {
+- Score stepScore
+- Score thresholdScore
+- Integer bucketSize
+- Integer stepIndex
+- boolean foundNewSolution
++ Score getStepScore()
++ void setStepScore(Score)
++ Score getThresholdScore()
++ void setThresholdScore(Score)
++ Integer getBucketSize()
++ void setBucketSize(Integer)
++ Integer getStepIndex()
++ void setStepIndex(Integer)
++ boolean isFoundNewSolution()
++ void setFoundNewSolution(boolean)
+}
+@enduml

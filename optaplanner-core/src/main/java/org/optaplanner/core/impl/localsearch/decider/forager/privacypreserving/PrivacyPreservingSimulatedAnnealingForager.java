@@ -45,7 +45,7 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
         Score moveScore = stepWinner.getScore();
         // Pick move if it increases the score
         if (moveScore.compareTo(lastStepScore) >= 0) {
-            logger.info("Found new winner with score: " + moveScore);
+            logger.debug("Found new winner with score: " + moveScore);
             return true;
         }
 
@@ -72,7 +72,7 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
         }
         // Pick move according to random number and accept chance
         if (stepWinner.getWorkingRandom().nextDouble() < acceptChance) {
-            logger.info("Accepted move with score: " + moveScore);
+            logger.debug("Accepted move with score: " + moveScore);
             return true;
         } else {
             return false;
@@ -131,7 +131,7 @@ public class PrivacyPreservingSimulatedAnnealingForager<Solution_> extends Abstr
             if (temperatureLevels[i] < temperatureMinimum) {
                 temperatureLevels[i] = temperatureMinimum;
             }
-            logger.info("New Temperature Level[" + i + "] is " + temperatureLevels[i]);
+            logger.debug("New Temperature Level[" + i + "] is " + temperatureLevels[i]);
         }
     }
 

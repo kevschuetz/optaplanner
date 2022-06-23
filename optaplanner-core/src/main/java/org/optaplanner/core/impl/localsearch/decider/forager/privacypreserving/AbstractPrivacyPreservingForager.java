@@ -25,6 +25,8 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
     protected final transient Logger logger = LoggerFactory.getLogger(getClass());
     private LocalSearchStatistics localSearchStatistics;
     protected StepStatistic currentStepStatistic;
+    private Double terminationFitness = Double.MAX_VALUE;
+
     /**
      * Specifies how many moves are gathered before a winner is picked.
      */
@@ -97,7 +99,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
      */
     protected AbstractPrivacyPreservingForager(int acceptedCountLimit,
             NeighbourhoodEvaluator<Solution_> neighbourhoodEvaluator, EvaluationType evaluationType) {
-        logger.info("Initialized " + this.getClass());
+        logger.debug("Initialized " + this.getClass());
         this.acceptedCountLimit = acceptedCountLimit;
 
         this.candidateMoveScopes = new ArrayList<>();
@@ -105,8 +107,8 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
         this.lastPickedMoveScope = null;
         this.neighbourhoodEvaluator = neighbourhoodEvaluator;
         this.evaluationType = evaluationType;
-        this.evaluationThreshold = 0.98; //TODO : configure
-        this.topThreshold = 0.02;
+        this.evaluationThreshold = 0.98; // default
+        this.topThreshold = 0.02; // default
     }
 
     // ************************************************************************
@@ -249,7 +251,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
         if (evaluationType == EvaluationType.ABOVE_THRESHOLD) {
             // Trigger evaluation
             Map<Score, List<Solution_>> aboveThresholdMap =
-                    neighbourhoodEvaluator.getCandidatesAboveThreshold(candidates, evaluationThreshold);
+                    neighbourhoodEvaluator.getCandidatesAboveThreshold(candidates, evaluationThreshold, terminationFitness);
             List<Solution_> aboveThresholdCandidates = aboveThresholdMap.entrySet().stream().findFirst().get().getValue();
             Score averageScore = aboveThresholdMap.entrySet().stream().findFirst().get().getKey();
 
@@ -261,7 +263,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
             stepWinner = new HashMap<>();
             stepWinner.put(averageScore, randomCandidate);
 
-            logger.info("Picked candidate " + index + " of " + aboveThresholdCandidates.size()
+            logger.debug("Picked candidate " + (index + 1) + " of " + aboveThresholdCandidates.size()
                     + " candidates above threshold as step winner.");
             currentStepStatistic.setBucketSize(aboveThresholdCandidates.size());
         } else if (evaluationType == EvaluationType.BEST_CANDIDATE) {
@@ -270,7 +272,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
         } else { // TOP
             // Trigger evaluation
             Map<Score, List<Solution_>> topCandidatesMap =
-                    neighbourhoodEvaluator.getTopCandidatesAndAverageScore(candidates, topThreshold);
+                    neighbourhoodEvaluator.getTopCandidatesAndAverageScore(candidates, topThreshold, terminationFitness);
             List<Solution_> topCandidates = topCandidatesMap.entrySet().stream().findFirst().get().getValue();
             Score averageScore = topCandidatesMap.entrySet().stream().findFirst().get().getKey();
 
@@ -282,7 +284,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
             stepWinner = new HashMap<>();
             stepWinner.put(averageScore, randomCandidate);
 
-            logger.info("Picked candidate " + index + " of " + topCandidates.size() + " top candidates as step winner.");
+            logger.debug("Picked candidate " + (index + 1) + " of " + topCandidates.size() + " top candidates as step winner.");
             currentStepStatistic.setBucketSize(topCandidates.size());
         }
 
@@ -336,5 +338,9 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
 
     public void setLocalSearchStatistics(LocalSearchStatistics localSearchStatistics) {
         this.localSearchStatistics = localSearchStatistics;
+    }
+
+    public void setTerminationFitness(Double terminationFitness) {
+        this.terminationFitness = terminationFitness;
     }
 }
