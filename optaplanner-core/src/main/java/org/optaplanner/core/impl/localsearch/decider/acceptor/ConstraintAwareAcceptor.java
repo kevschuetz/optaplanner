@@ -6,7 +6,7 @@ import org.optaplanner.core.impl.localsearch.event.LocalSearchPhaseLifecycleList
 import org.optaplanner.core.impl.localsearch.scope.LocalSearchMoveScope;
 
 /**
- * Acceptor that accepts moves based on the compliance with constraints that is evaluated
+ * Acceptor that accepts moves based on the compliance with constraints that are evaluated
  * by an implementation of the
  * {@link org.optaplanner.core.impl.localsearch.decider.forager.privacypreserving.NeighbourhoodEvaluator}
  * 

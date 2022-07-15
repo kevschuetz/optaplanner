@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A privacy preserving forager that uses the privacy-engine to evaluate the candidates of the search steps.
+ * A privacy preserving forager that uses the {@link NeighbourhoodEvaluator} to evaluate the accumulated candidates of the search steps.
  * This class can be extended to implement different selection mechanisms, by implementing
  * {@link #isAccepted(LocalSearchMoveScope)}.
  * 
@@ -23,8 +23,17 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalSearchPhaseLifecycleListenerAdapter<Solution_>
         implements LocalSearchForager<Solution_> {
     protected final transient Logger logger = LoggerFactory.getLogger(getClass());
+    /**
+     * The statistics that are generated during the search.
+     */
     private LocalSearchStatistics localSearchStatistics;
+    /**
+     * The statistic of the current step.
+     */
     protected StepStatistic currentStepStatistic;
+    /**
+     * The maximum fitness which can be set and is passed to the Evaluation.
+     */
     private Double terminationFitness = Double.MAX_VALUE;
 
     /**
@@ -232,7 +241,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
     protected abstract boolean isAccepted(LocalSearchMoveScope<Solution_> stepWinner);
 
     /**
-     * Initializes required collections, evaluates the neighbourhood and returns the winning move
+     * Initializes required collections, evaluates the neighbourhood and returns the winning move in each step.
      */
     private LocalSearchMoveScope<Solution_> getStepWinner() {
         mapCandidateSolutionsToMoveScopes();
@@ -296,7 +305,7 @@ public abstract class AbstractPrivacyPreservingForager<Solution_> extends LocalS
         Solution_ solution = entry.get().getValue();
         Score score = entry.get().getKey();
 
-        // Get move scope corresponding to winning solution
+        // Get move scope corresponding to winning solution (data transformation).
         LocalSearchMoveScope<Solution_> moveScope = this.solutionMoveScopeMap.get(solution);
         moveScope.setScore(score);
 

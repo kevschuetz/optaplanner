@@ -107,7 +107,7 @@ public class PrivacyPreservingStepCountingHillClimbingForager<Solution_> extends
     }
 
     /**
-     * Determines the count increment for every step according to the type
+     * Determines the count increment for every step according to the type.
      * 
      * @param stepScope the step scope
      * @return the increment
